@@ -5,6 +5,7 @@ import { config } from "@/lib/config";
 import { DemoConsole } from "@/components/DemoConsole";
 import { DiffPanel } from "@/components/DiffPanel";
 import { SetQuotaForm } from "@/components/SetQuotaForm";
+import { StakeStatus } from "@/components/StakeStatus";
 
 export default function Home() {
   const [limitGwei, setLimitGwei] = useState("5");
@@ -37,6 +38,8 @@ export default function Home() {
         </section>
 
         <SetQuotaForm limitGwei={limitGwei} onChange={setLimitGwei} />
+
+        <StakeStatus />
 
         <DemoConsole />
 
