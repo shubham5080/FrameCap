@@ -81,6 +81,9 @@ https://github.com/shubham5080/FrameCap
 ## Build schedule
 Half-hour commits: [FRAMECAP_BUILD_SCHEDULE.md](./FRAMECAP_BUILD_SCHEDULE.md)
 
+## Mentor desk
+Quick Q&A + show path: [MENTOR_NOTES.md](./MENTOR_NOTES.md)
+
 ## Submission
 ETHGlobal form checklist: [SUBMISSION.md](./SUBMISSION.md)
 
