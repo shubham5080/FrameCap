@@ -81,5 +81,8 @@ https://github.com/shubham5080/FrameCap
 ## Build schedule
 Half-hour commits: [FRAMECAP_BUILD_SCHEDULE.md](./FRAMECAP_BUILD_SCHEDULE.md)
 
+## Submission
+ETHGlobal form checklist: [SUBMISSION.md](./SUBMISSION.md)
+
 ## AI disclosure
 See [AI_USAGE.md](./AI_USAGE.md).
