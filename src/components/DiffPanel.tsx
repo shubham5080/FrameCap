@@ -142,7 +142,7 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
   }
 
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+    <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6">
       <h2 className="mb-2 text-sm font-medium text-zinc-300">
         Canonical vs alt Diff
       </h2>
@@ -155,7 +155,7 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
         type="button"
         disabled={busy}
         onClick={() => void run()}
-        className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40"
+        className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
       >
         {busy ? "Running Diff…" : "Run Diff demo"}
       </button>
@@ -199,11 +199,11 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
           ) : (
             <>
               <StatusLine kind="ok">Diff complete — spine recorded.</StatusLine>
-              <p className="text-zinc-400">
+              <p className="break-anywhere text-zinc-400">
                 Wallet{" "}
                 <span className="font-mono text-zinc-200">{result.wallet}</span>
               </p>
-              <p className="text-zinc-400">
+              <p className="break-anywhere text-zinc-400">
                 Ledger{" "}
                 <span className="font-mono text-zinc-200">{result.ledger}</span>
                 {" · "}limit {result.dailyLimitWei} wei/day
@@ -260,7 +260,7 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
                         </div>
                         <p className="mt-1 text-emerald-400/90">{e.method}</p>
                         <p className="mt-0.5 text-zinc-500">{e.paramsNote}</p>
-                        <p className="mt-2 break-all text-zinc-300">
+                        <p className="mt-2 break-anywhere text-zinc-300">
                           {e.result}
                         </p>
                       </li>

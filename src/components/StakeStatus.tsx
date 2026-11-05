@@ -65,30 +65,34 @@ export function StakeStatus() {
   }
 
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+    <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6">
       <h2 className="mb-2 text-sm font-medium text-zinc-300">Stake status</h2>
       <p className="mb-4 text-sm text-zinc-500">
         Read NaiveStakingRegistry for a wallet (paste address from Diff demo
         after stake). Registry{" "}
-        <span className="font-mono text-zinc-400">{config.stakingRegistry}</span>
+        <span className="break-anywhere font-mono text-zinc-400">
+          {config.stakingRegistry}
+        </span>
       </p>
       <label className="block text-xs text-zinc-500" htmlFor="stake-addr">
         Wallet address
       </label>
-      <div className="mt-1 flex flex-wrap items-center gap-3">
+      <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <input
           id="stake-addr"
           type="text"
           placeholder="0x…"
+          autoComplete="off"
+          spellCheck={false}
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          className="min-w-[16rem] flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-sm text-zinc-100 outline-none focus:border-emerald-500"
+          className="w-full min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 font-mono text-sm text-zinc-100 outline-none focus:border-emerald-500"
         />
         <button
           type="button"
           disabled={busy}
           onClick={() => void lookup()}
-          className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40"
+          className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
         >
           {busy ? "Reading…" : "Check stake"}
         </button>

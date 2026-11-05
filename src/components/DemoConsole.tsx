@@ -101,7 +101,7 @@ export function DemoConsole() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+      <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-sm font-medium text-zinc-300">Gateway</h2>
           <button
@@ -165,7 +165,7 @@ export function DemoConsole() {
         )}
       </section>
 
-      <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+      <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6">
         <h2 className="mb-2 text-sm font-medium text-zinc-300">
           First admitted Frame tx
         </h2>
@@ -174,15 +174,17 @@ export function DemoConsole() {
           self-relay, submit via eth_sendFrameTransaction, wait for inclusion.
         </p>
         {health?.ok === false && (
-          <StatusLine kind="error">
-            Gateway unreachable — fix health before sending a Frame tx.
-          </StatusLine>
+          <div className="mb-3">
+            <StatusLine kind="error">
+              Gateway unreachable — fix health before sending a Frame tx.
+            </StatusLine>
+          </div>
         )}
         <button
           type="button"
           disabled={busy || health?.ok === false || healthLoading}
           onClick={() => void runFirstTx()}
-          className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40"
+          className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
         >
           {busy ? "Sending…" : "Send first Frame tx"}
         </button>
@@ -200,11 +202,11 @@ export function DemoConsole() {
             {result.ok ? (
               <>
                 <StatusLine kind="ok">Admitted and mined.</StatusLine>
-                <p className="text-zinc-400">
+                <p className="break-anywhere text-zinc-400">
                   Sender{" "}
                   <span className="font-mono text-zinc-200">{result.address}</span>
                 </p>
-                <p className="text-zinc-400">
+                <p className="break-anywhere text-zinc-400">
                   Tx{" "}
                   <span className="font-mono text-zinc-200">{result.txHash}</span>
                 </p>
