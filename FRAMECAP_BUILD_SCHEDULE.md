@@ -24,7 +24,7 @@
 |----|-----|-----|--------|
 | ✅ | 22:15 | `861e267` | `chore: scaffold FrameCap` |
 | ✅ | 22:17 | `2a6580c` | `docs: fix scaffold SHA on FrameCap schedule` |
-| ⬜ | 23:01 | _(you push)_ | `feat: stake status ui` |
+| ✅ | 23:01 | `43eb862` | `feat: stake status ui` (on origin; GitHub push 403) |
 
 ---
 
