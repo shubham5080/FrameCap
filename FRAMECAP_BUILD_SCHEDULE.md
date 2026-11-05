@@ -22,7 +22,7 @@
 
 | ✅ | IST | SHA | Commit |
 |----|-----|-----|--------|
-| ✅ | 22:15 | `5383fa1` | `chore: scaffold FrameCap` |
+| ✅ | 22:15 | `861e267` | `chore: scaffold FrameCap` |
 
 ---
 
