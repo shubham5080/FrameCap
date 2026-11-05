@@ -34,7 +34,8 @@
 | ✅ | 01:44 | `1be9e5b` | `docs: submission checklist` |
 | ✅ | 02:23 | `5d84ccf` | `fix: demo copy` |
 | ✅ | 02:47 | `3cc2929` | `docs: mentor notes` |
-| ⬜ | 03:13 | _(you push)_ | `docs: sync ui labels` |
+| ✅ | 03:13 | `f694290` | `docs: sync ui labels` |
+| ⬜ | 04:58 | _(you push)_ | catch-up: gateway → diff recovery → evidence |
 
 ---
 
@@ -59,8 +60,8 @@
 
 | Slot | Time | Task | Commit |
 |------|------|------|--------|
-| ✅ | 03:00 | Sync README / talk track to UI labels | `docs: sync ui labels` (ready — you push) |
-| ⬜ | 03:30 | Gateway health harden notes | `docs: gateway harden` |
+| ✅ | 03:00 | Sync README / talk track to UI labels | `docs: sync ui labels` |
+| ✅ | 03:30 | Gateway health harden notes | `docs: gateway harden` (catch-up) |
 | ⬜ | 04:00 | Diff failure recovery notes | `docs: diff recovery` |
 | ⬜ | 04:30 | Screenshot / evidence folder stub | `docs: evidence stub` |
 | ⬜ | 05:00+ | Rehearse + fix only as needed | keep half-hour commits |
