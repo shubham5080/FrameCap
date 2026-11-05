@@ -48,6 +48,27 @@ Example post-stake proof: https://explorer.altmempool.wtf/tx/0xedb83a3de6bfd8c16
 npm run smoke:diff   # requires dev server on :43127
 ```
 
+## Dry run checklist (before mentors / video)
+
+Do this **twice** on a healthy gateway. Keep the tab open — Diff can take 1–3 minutes.
+
+1. `npm run dev` → open http://127.0.0.1:43127  
+2. **Gateway** → Refresh → status `reachable`, faucet `enabled`, chain `1337`  
+3. **Set daily quota** → e.g. `5` gwei → Apply to demo  
+4. **Run Diff demo** → wait for “Diff complete”  
+5. Confirm UI rows:
+   - Canonical → `REJECTED [STO]` / `StorageReadNonSender`
+   - Alt pre-stake → admitted or rejected (note the raw RPC line)
+   - Alt after stake → `ADMITTED` + explorer link
+   - Over-quota → `REJECTED [QUOTA]`
+6. Open **Raw RPC evidence** → each step shows method (`eth_sendRawTransaction` / `eth_sendFrameTransaction`) + result/error  
+7. Copy wallet address → **Stake status** → Check stake → expect staked after a successful Diff  
+8. Save one explorer URL for the talk track / submission form  
+
+**Pass criteria:** same intent, canonical reject + alt admit proof + over-quota block, with RPC evidence visible.
+
+**If Diff fails:** note the StatusLine error + HTTP/RPC message, retry once, then check faucet rate limits / gateway `skandha_explorer_info`.
+
 ## Contracts
 ```bash
 cd contracts && forge install && forge test
