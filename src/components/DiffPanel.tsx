@@ -12,6 +12,14 @@ type Verdict = {
   explorerUrl?: string;
 };
 
+type RpcEvidence = {
+  step: string;
+  method: string;
+  paramsNote: string;
+  ok: boolean;
+  result: string;
+};
+
 type DiffResult = {
   ok: boolean;
   message?: string;
@@ -25,6 +33,7 @@ type DiffResult = {
   stakeAmountWei?: string;
   altAfterStake?: Verdict;
   overQuota?: Verdict;
+  rpcEvidence?: RpcEvidence[];
 };
 
 function VerdictRow({ label, v }: { label: string; v?: Verdict }) {
@@ -158,6 +167,42 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
                   stake tx {result.stakeTxHash} · stake {result.stakeAmountWei}{" "}
                   wei
                 </p>
+              )}
+
+              {result.rpcEvidence && result.rpcEvidence.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <h3 className="text-sm font-medium text-zinc-300">
+                    Raw RPC evidence
+                  </h3>
+                  <p className="text-xs text-zinc-500">
+                    JSON-RPC methods used for each Diff step (gateway{" "}
+                    <span className="font-mono">/rpc</span>).
+                  </p>
+                  <ul className="space-y-2">
+                    {result.rpcEvidence.map((e) => (
+                      <li
+                        key={e.step}
+                        className="rounded-lg bg-zinc-950/80 p-3 font-mono text-xs"
+                      >
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                          <span className="text-zinc-400">{e.step}</span>
+                          <span
+                            className={
+                              e.ok ? "text-emerald-400" : "text-red-400"
+                            }
+                          >
+                            {e.ok ? "ok" : "error"}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-emerald-400/90">{e.method}</p>
+                        <p className="mt-0.5 text-zinc-500">{e.paramsNote}</p>
+                        <p className="mt-2 break-all text-zinc-300">
+                          {e.result}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </>
           )}

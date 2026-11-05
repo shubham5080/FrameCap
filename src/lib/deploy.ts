@@ -141,6 +141,16 @@ async function getStake(address: Address): Promise<bigint> {
   return BigInt(`0x${body.slice(0, 64)}`);
 }
 
+export type RpcEvidence = {
+  step: string;
+  method: string;
+  /** Short params note (never full signed tx). */
+  paramsNote: string;
+  ok: boolean;
+  /** Hash on success, node error text on failure. */
+  result: string;
+};
+
 export type DiffDemoResult = {
   owner: Address;
   ledger: Address;
@@ -154,6 +164,8 @@ export type DiffDemoResult = {
   altAfterStake: MempoolVerdict & { txHash?: Hex; explorerUrl?: string };
   overQuota: MempoolVerdict;
   explorerBase: string;
+  /** Judge-facing JSON-RPC evidence for each Diff step. */
+  rpcEvidence: RpcEvidence[];
 };
 
 /** Full FrameCap spine: deploy → set quota → canonical ❌ → alt unstaked ❌ → stake → alt ✅ → over-quota ❌ */
@@ -303,6 +315,52 @@ export async function runDiffDemo(opts?: {
   );
   const overQuota = await attemptSend(() => sendFrameTx(overTx));
 
+  const rpcEvidence: RpcEvidence[] = [
+    {
+      step: "1. Canonical mempool",
+      method: "eth_sendRawTransaction",
+      paramsNote: "type-0x06 Frame bytes (gateway → ethrex public pool)",
+      ok: canonical.accepted,
+      result: canonical.accepted
+        ? (canonical as { txHash?: string }).txHash ?? "accepted"
+        : (canonical.message ?? "rejected"),
+    },
+    {
+      step: "2. Alt before stake",
+      method: "eth_sendFrameTransaction",
+      paramsNote: "toWire(signed VERIFY+SENDER) via gateway sidecar",
+      ok: Boolean(altBeforeStake.accepted),
+      result: altBeforeStake.accepted
+        ? (altBeforeStake.txHash ?? "accepted")
+        : (altBeforeStake.message ?? "rejected"),
+    },
+    {
+      step: "3. Stake wallet",
+      method: "eth_sendFrameTransaction",
+      paramsNote: `SENDER → registry.addStake(${config.stakeEth} ETH)`,
+      ok: true,
+      result: stakeTxHash,
+    },
+    {
+      step: "4. Alt after stake",
+      method: "eth_sendFrameTransaction",
+      paramsNote: "VERIFY quota read + SENDER recordSpend + transfer",
+      ok: Boolean(altAfterStake.accepted),
+      result: altAfterStake.accepted
+        ? (altAfterStake.txHash ?? "accepted")
+        : (altAfterStake.message ?? "rejected"),
+    },
+    {
+      step: "5. Over-quota",
+      method: "eth_sendFrameTransaction",
+      paramsNote: "VERIFY data requests full dailyLimit after prior spend",
+      ok: Boolean(overQuota.accepted),
+      result: overQuota.accepted
+        ? ((overQuota as { txHash?: string }).txHash ?? "accepted")
+        : (overQuota.message ?? "rejected"),
+    },
+  ];
+
   return {
     owner: owner.address,
     ledger,
@@ -316,6 +374,7 @@ export async function runDiffDemo(opts?: {
     altAfterStake,
     overQuota,
     explorerBase: config.explorerUrl,
+    rpcEvidence,
   };
 }
 

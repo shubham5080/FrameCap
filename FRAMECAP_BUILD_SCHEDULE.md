@@ -24,7 +24,9 @@
 |----|-----|-----|--------|
 | ✅ | 22:15 | `861e267` | `chore: scaffold FrameCap` |
 | ✅ | 22:17 | `2a6580c` | `docs: fix scaffold SHA on FrameCap schedule` |
-| ✅ | 23:01 | `43eb862` | `feat: stake status ui` (on origin; GitHub push 403) |
+| ✅ | 23:01 | `43eb862` | `feat: stake status ui` |
+| ✅ | 23:10 | `ab78395` | `docs: tick stake status on FrameCap schedule` |
+| ⬜ | 23:33 | _(you push)_ | `feat: raw rpc evidence` |
 
 ---
 
@@ -33,8 +35,8 @@
 | Slot | Time | Task | Commit |
 |------|------|------|--------|
 | ✅ | 22:15 | Rename + fresh repo scaffold push | `chore: scaffold FrameCap` |
-| ✅ | 22:45 | Stake status in UI | `feat: stake status ui` (ready — you push) |
-| ⬜ | 23:15 | Raw RPC evidence in Diff | `feat: raw rpc evidence` |
+| ✅ | 22:45 | Stake status in UI | `feat: stake status ui` |
+| ✅ | 23:15 | Raw RPC evidence in Diff | `feat: raw rpc evidence` (ready — you push) |
 | ⬜ | 23:45 | Loading/error states | `fix: loading error states` |
 | ⬜ | 00:15 | Mobile usable layout | `style: responsive basics` |
 | ⬜ | 00:45 | Diff dry run notes in README | `docs: dry run evidence` |
