@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { config } from "@/lib/config";
+import { StatusLine } from "@/components/StatusLine";
 
 type StakeResult = {
   ok: boolean;
@@ -21,14 +22,37 @@ export function StakeStatus() {
   const [result, setResult] = useState<StakeResult | null>(null);
 
   async function lookup() {
+    const trimmed = address.trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(trimmed)) {
+      setResult({
+        ok: false,
+        message: "Enter a 42-character 0x address before checking stake.",
+      });
+      return;
+    }
     setBusy(true);
     setResult(null);
     try {
       const res = await fetch(
-        `/api/stake?address=${encodeURIComponent(address.trim())}`,
+        `/api/stake?address=${encodeURIComponent(trimmed)}`,
         { cache: "no-store" },
       );
-      const data = (await res.json()) as StakeResult;
+      let data: StakeResult;
+      try {
+        data = (await res.json()) as StakeResult;
+      } catch {
+        setResult({
+          ok: false,
+          message: `Bad JSON from /api/stake (HTTP ${res.status})`,
+        });
+        return;
+      }
+      if (!res.ok && data.ok !== false) {
+        data = {
+          ok: false,
+          message: data.message ?? `HTTP ${res.status}`,
+        };
+      }
       setResult(data);
     } catch (e) {
       setResult({
@@ -62,7 +86,7 @@ export function StakeStatus() {
         />
         <button
           type="button"
-          disabled={busy || address.trim().length < 42}
+          disabled={busy}
           onClick={() => void lookup()}
           className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40"
         >
@@ -70,21 +94,38 @@ export function StakeStatus() {
         </button>
       </div>
 
+      {busy && (
+        <div className="mt-3">
+          <StatusLine kind="loading">
+            eth_call getDepositInfo on staking registry…
+          </StatusLine>
+        </div>
+      )}
+
+      {!busy && !result && (
+        <div className="mt-3">
+          <StatusLine kind="idle">
+            Paste a wallet from Diff demo to see stake.
+          </StatusLine>
+        </div>
+      )}
+
       {result && (
         <div className="mt-4 space-y-1 text-sm">
           {!result.ok ? (
-            <p className="text-red-400">{result.message ?? "Lookup failed"}</p>
+            <div className="space-y-1">
+              <StatusLine kind="error">Lookup failed</StatusLine>
+              <p className="break-all font-mono text-xs text-red-400/80">
+                {result.message}
+              </p>
+            </div>
           ) : (
             <>
-              <p
-                className={
-                  result.isStaked ? "text-emerald-400" : "text-amber-400"
-                }
-              >
+              <StatusLine kind={result.isStaked ? "ok" : "error"}>
                 {result.isStaked
                   ? "Staked (meets min stake, not withdrawing)"
                   : "Not staked / below min / withdrawing"}
-              </p>
+              </StatusLine>
               <p className="text-zinc-400">
                 Amount{" "}
                 <span className="font-mono text-zinc-200">

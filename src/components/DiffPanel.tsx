@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { humanRejection } from "@/lib/explain";
+import { StatusLine } from "@/components/StatusLine";
 
 type Verdict = {
   accepted: boolean;
@@ -23,6 +24,7 @@ type RpcEvidence = {
 type DiffResult = {
   ok: boolean;
   message?: string;
+  code?: string | number;
   owner?: string;
   ledger?: string;
   wallet?: string;
@@ -35,6 +37,16 @@ type DiffResult = {
   overQuota?: Verdict;
   rpcEvidence?: RpcEvidence[];
 };
+
+const PHASES = [
+  "Deploying QuotaLedger + QuotaWallet…",
+  "Setting daily quota…",
+  "Probing canonical mempool…",
+  "Probing alt mempool…",
+  "Staking wallet…",
+  "Admitting post-stake spend…",
+  "Checking over-quota…",
+] as const;
 
 function VerdictRow({ label, v }: { label: string; v?: Verdict }) {
   if (!v) return null;
@@ -84,18 +96,39 @@ function VerdictRow({ label, v }: { label: string; v?: Verdict }) {
 
 export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string }) {
   const [busy, setBusy] = useState(false);
+  const [phase, setPhase] = useState(0);
   const [result, setResult] = useState<DiffResult | null>(null);
 
   async function run() {
     setBusy(true);
     setResult(null);
+    setPhase(0);
+    const tick = window.setInterval(() => {
+      setPhase((p) => (p + 1) % PHASES.length);
+    }, 4000);
     try {
       const res = await fetch("/api/diff-demo", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ dailyLimitGwei: Number(dailyLimitGwei) }),
       });
-      const data = (await res.json()) as DiffResult;
+      let data: DiffResult;
+      try {
+        data = (await res.json()) as DiffResult;
+      } catch {
+        setResult({
+          ok: false,
+          message: `Bad JSON from /api/diff-demo (HTTP ${res.status})`,
+        });
+        return;
+      }
+      if (!res.ok && data.ok !== false) {
+        data = {
+          ok: false,
+          message: data.message ?? `HTTP ${res.status}`,
+          code: data.code ?? res.status,
+        };
+      }
       setResult(data);
     } catch (e) {
       setResult({
@@ -103,6 +136,7 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
         message: e instanceof Error ? e.message : String(e),
       });
     } finally {
+      window.clearInterval(tick);
       setBusy(false);
     }
   }
@@ -123,18 +157,48 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
         onClick={() => void run()}
         className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {busy
-          ? "Running full spine… (deploy + stake can take several minutes)"
-          : "Run Diff demo"}
+        {busy ? "Running Diff…" : "Run Diff demo"}
       </button>
+
+      {busy && (
+        <div className="mt-4 space-y-1">
+          <StatusLine kind="loading">{PHASES[phase]}</StatusLine>
+          <p className="text-xs text-zinc-600">
+            Live deploy + mine — usually 1–3 minutes. Keep this tab open.
+          </p>
+        </div>
+      )}
+
+      {!busy && !result && (
+        <div className="mt-4">
+          <StatusLine kind="idle">
+            Idle — run Diff to capture canonical vs alt evidence.
+          </StatusLine>
+        </div>
+      )}
 
       {result && (
         <div className="mt-4 space-y-3 text-sm">
-          {!result.ok && (
-            <p className="text-red-400">{result.message ?? "Demo failed"}</p>
-          )}
-          {result.ok && (
+          {!result.ok ? (
+            <div className="space-y-1">
+              <StatusLine kind="error">
+                Diff failed
+                {result.code != null ? ` (${result.code})` : ""}
+              </StatusLine>
+              <p className="break-all font-mono text-xs text-red-400/80">
+                {result.message ?? "Unknown error"}
+              </p>
+              <button
+                type="button"
+                onClick={() => void run()}
+                className="text-xs text-emerald-400 hover:underline"
+              >
+                Retry Diff demo
+              </button>
+            </div>
+          ) : (
             <>
+              <StatusLine kind="ok">Diff complete — spine recorded.</StatusLine>
               <p className="text-zinc-400">
                 Wallet{" "}
                 <span className="font-mono text-zinc-200">{result.wallet}</span>

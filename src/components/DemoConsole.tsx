@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { StatusLine } from "@/components/StatusLine";
 
 type Health = {
   ok: boolean;
@@ -37,14 +38,25 @@ export function DemoConsole() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<FirstTx | null>(null);
 
+  const [healthLoading, setHealthLoading] = useState(true);
+
   const refreshHealth = useCallback(async () => {
     setHealthErr(null);
+    setHealthLoading(true);
     try {
       const res = await fetch("/api/health", { cache: "no-store" });
+      if (!res.ok) {
+        setHealth(null);
+        setHealthErr(`Health HTTP ${res.status}`);
+        return;
+      }
       const data = (await res.json()) as Health;
       setHealth(data);
     } catch (e) {
+      setHealth(null);
       setHealthErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setHealthLoading(false);
     }
   }, []);
 
@@ -57,7 +69,24 @@ export function DemoConsole() {
     setResult(null);
     try {
       const res = await fetch("/api/first-tx", { method: "POST" });
-      const data = (await res.json()) as FirstTx;
+      let data: FirstTx;
+      try {
+        data = (await res.json()) as FirstTx;
+      } catch {
+        setResult({
+          ok: false,
+          message: `Bad JSON from /api/first-tx (HTTP ${res.status})`,
+          code: res.status,
+        });
+        return;
+      }
+      if (!res.ok && data.ok !== false) {
+        data = {
+          ok: false,
+          message: data.message ?? `HTTP ${res.status}`,
+          code: data.code ?? res.status,
+        };
+      }
       setResult(data);
       void refreshHealth();
     } catch (e) {
@@ -83,13 +112,23 @@ export function DemoConsole() {
             Refresh
           </button>
         </div>
-        {healthErr && (
-          <p className="text-sm text-red-400">Health check failed: {healthErr}</p>
+        {healthLoading && (
+          <StatusLine kind="loading">Probing gateway…</StatusLine>
         )}
-        {!health && !healthErr && (
-          <p className="text-sm text-zinc-500">Probing gateway…</p>
+        {healthErr && !healthLoading && (
+          <div className="space-y-1">
+            <StatusLine kind="error">Health check failed</StatusLine>
+            <p className="font-mono text-xs text-red-400/80">{healthErr}</p>
+            <button
+              type="button"
+              onClick={() => void refreshHealth()}
+              className="text-xs text-emerald-400 hover:underline"
+            >
+              Retry health
+            </button>
+          </div>
         )}
-        {health && (
+        {health && !healthLoading && (
           <dl className="grid gap-2 text-sm text-zinc-400 sm:grid-cols-2">
             <div>
               <dt className="text-zinc-500">Status</dt>
@@ -134,20 +173,33 @@ export function DemoConsole() {
           Generate a key, ask the faucet if needed, sign a VERIFY+SENDER
           self-relay, submit via eth_sendFrameTransaction, wait for inclusion.
         </p>
+        {health?.ok === false && (
+          <StatusLine kind="error">
+            Gateway unreachable — fix health before sending a Frame tx.
+          </StatusLine>
+        )}
         <button
           type="button"
-          disabled={busy || health?.ok === false}
+          disabled={busy || health?.ok === false || healthLoading}
           onClick={() => void runFirstTx()}
           className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {busy ? "Sending… (faucet + mine can take ~1–2 min)" : "Send first Frame tx"}
+          {busy ? "Sending…" : "Send first Frame tx"}
         </button>
+        {busy && (
+          <div className="mt-3">
+            <StatusLine kind="loading">
+              Faucet (if needed) → sign → eth_sendFrameTransaction → wait mine
+              (~1–2 min)
+            </StatusLine>
+          </div>
+        )}
 
         {result && (
           <div className="mt-4 space-y-2 text-sm">
             {result.ok ? (
               <>
-                <p className="text-emerald-400">Admitted and mined.</p>
+                <StatusLine kind="ok">Admitted and mined.</StatusLine>
                 <p className="text-zinc-400">
                   Sender{" "}
                   <span className="font-mono text-zinc-200">{result.address}</span>
@@ -174,10 +226,22 @@ export function DemoConsole() {
                 )}
               </>
             ) : (
-              <p className="text-red-400">
-                Failed{result.code != null ? ` (${result.code})` : ""}:{" "}
-                {result.message}
-              </p>
+              <div className="space-y-1">
+                <StatusLine kind="error">
+                  Failed{result.code != null ? ` (${result.code})` : ""}
+                </StatusLine>
+                <p className="break-all font-mono text-xs text-red-400/80">
+                  {result.message}
+                </p>
+                <button
+                  type="button"
+                  disabled={busy || health?.ok === false}
+                  onClick={() => void runFirstTx()}
+                  className="text-xs text-emerald-400 hover:underline disabled:opacity-40"
+                >
+                  Retry first Frame tx
+                </button>
+              </div>
             )}
           </div>
         )}
