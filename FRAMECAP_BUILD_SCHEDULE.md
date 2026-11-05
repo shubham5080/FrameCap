@@ -33,7 +33,8 @@
 | ✅ | 01:13 | `46d203a` | `docs: demo talk track` |
 | ✅ | 01:44 | `1be9e5b` | `docs: submission checklist` |
 | ✅ | 02:23 | `5d84ccf` | `fix: demo copy` |
-| ⬜ | 02:47 | _(you push)_ | `docs: mentor notes` |
+| ✅ | 02:47 | `3cc2929` | `docs: mentor notes` |
+| ⬜ | 03:13 | _(you push)_ | `docs: sync ui labels` |
 
 ---
 
@@ -50,16 +51,20 @@
 | ✅ | 01:15 | Demo talk track polish | `docs: demo talk track` |
 | ✅ | 01:45 | AI_USAGE / submission checklist | `docs: submission checklist` |
 | ✅ | 02:15 | Tiny UX copy fixes | `fix: demo copy` |
-| ✅ | 02:45 | Buffer / mentor notes | `docs: mentor notes` (ready — you push) |
+| ✅ | 02:45 | Buffer / mentor notes | `docs: mentor notes` |
 
 ---
 
 ## Fri 03:00 → 15:00 — Harden only (still 30‑min commits)
 
-| Slot | Time | Task |
-|------|------|------|
-| ⬜ | 03:00–15:00 | Fixes, screenshots, rehearse — **no new features after 15:00** |
-| ⬜ | 15:00 | **FEATURE FREEZE** `chore: feature freeze` |
+| Slot | Time | Task | Commit |
+|------|------|------|--------|
+| ✅ | 03:00 | Sync README / talk track to UI labels | `docs: sync ui labels` (ready — you push) |
+| ⬜ | 03:30 | Gateway health harden notes | `docs: gateway harden` |
+| ⬜ | 04:00 | Diff failure recovery notes | `docs: diff recovery` |
+| ⬜ | 04:30 | Screenshot / evidence folder stub | `docs: evidence stub` |
+| ⬜ | 05:00+ | Rehearse + fix only as needed | keep half-hour commits |
+| ⬜ | 15:00 | **FEATURE FREEZE** | `chore: feature freeze` |
 
 ---
 

@@ -32,7 +32,7 @@ See `src/lib/config.ts` (pinned from the live workshop gateway).
 - Explorer: https://explorer.altmempool.wtf/tx/0x48f225e43d5a969285a27b0b13e8aeebef4c0ff7393d5b870191f539373a9bb6
 
 ## Diff demo (canonical ❌ / alt ✅ / over-quota ❌)
-`POST /api/diff-demo` (or the **Run Diff demo** button) deploys `QuotaLedger` + `QuotaWallet`, sets a daily limit, then:
+`POST /api/diff-demo` (or **Run Diff (prize demo)**) deploys `QuotaLedger` + `QuotaWallet`, sets a daily limit, then:
 
 | Step | Result |
 |------|--------|
@@ -53,16 +53,16 @@ npm run smoke:diff   # requires dev server on :43127
 Do this **twice** on a healthy gateway. Keep the tab open — Diff can take 1–3 minutes.
 
 1. `npm run dev` → open http://127.0.0.1:43127  
-2. **Gateway** → Refresh → status `reachable`, faucet `enabled`, chain `1337`  
-3. **Set daily quota** → e.g. `5` gwei → Apply to demo  
-4. **Run Diff demo** → wait for “Diff complete”  
+2. **Alt mempool gateway** → Recheck → status `reachable`, faucet `enabled`, chain `1337`  
+3. **Daily quota** → e.g. `5` gwei → **Use for Diff**  
+4. **Run Diff (prize demo)** → wait for “Diff complete”  
 5. Confirm UI rows:
-   - Canonical → `REJECTED [STO]` / `StorageReadNonSender`
-   - Alt pre-stake → admitted or rejected (note the raw RPC line)
-   - Alt after stake → `ADMITTED` + explorer link
-   - Over-quota → `REJECTED [QUOTA]`
+   - Canonical — expect reject → `REJECTED [STO]` / `StorageReadNonSender`
+   - Alt before stake — expect reject (or note raw RPC)
+   - Alt after stake — expect admit → `ADMITTED` + explorer link
+   - Over quota — VERIFY reverts → `REJECTED [QUOTA]`
 6. Open **Raw RPC evidence** → each step shows method (`eth_sendRawTransaction` / `eth_sendFrameTransaction`) + result/error  
-7. Copy wallet address → **Stake status** → Check stake → expect staked after a successful Diff  
+7. Copy wallet → **Stake on NaiveStakingRegistry** → **Check stake** → expect eligible after Diff  
 8. Save one explorer URL for the talk track / submission form  
 
 **Pass criteria:** same intent, canonical reject + alt admit proof + over-quota block, with RPC evidence visible.

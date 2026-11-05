@@ -15,7 +15,7 @@
    FrameCap: onchain daily limit on `QuotaLedger` + EIP-8141 wallet. Same signed intent, two mempools.
 
 3. **Live (45s)**  
-   Open Diff → **Run Diff demo** → point at:  
+   Open Diff → **Run Diff (prize demo)** → point at:  
    canonical ❌ → stake → alt ✅ + explorer → over-quota ❌.  
    Open **Raw RPC evidence** for one second (`eth_sendRawTransaction` vs `eth_sendFrameTransaction`).
 
@@ -26,11 +26,11 @@
 
 ## Click path (rehearse once)
 
-1. Gateway shows **reachable** / faucet **enabled**  
-2. Set quota (e.g. 5 gwei) → Apply  
-3. Run Diff demo (wait 1–3 min — narrate while it runs)  
+1. Alt mempool gateway shows **reachable** / faucet **enabled**  
+2. Daily quota (e.g. 5 gwei) → **Use for Diff**  
+3. **Run Diff (prize demo)** (wait 1–3 min — narrate while it runs)  
 4. Scroll verdicts + Raw RPC evidence  
-5. Optional: paste wallet into Stake status → Check stake  
+5. Optional: paste wallet → **Check stake**  
 6. Open one explorer link  
 
 If Diff is still running at 60s: keep talking problem/product; when it finishes, hit the four rows fast.
