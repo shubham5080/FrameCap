@@ -35,7 +35,9 @@
 | ✅ | 02:23 | `5d84ccf` | `fix: demo copy` |
 | ✅ | 02:47 | `3cc2929` | `docs: mentor notes` |
 | ✅ | 03:13 | `f694290` | `docs: sync ui labels` |
-| ⬜ | 04:58 | _(you push)_ | catch-up: gateway → diff recovery → evidence |
+| ✅ | 04:58 | `eb734c6` | `docs: gateway harden` |
+| ✅ | 04:58 | `e2351cc` | `docs: diff recovery` |
+| ⬜ | 04:58 | _(you push)_ | catch-up: gateway + diff recovery + evidence |
 
 ---
 
@@ -62,8 +64,8 @@
 |------|------|------|--------|
 | ✅ | 03:00 | Sync README / talk track to UI labels | `docs: sync ui labels` |
 | ✅ | 03:30 | Gateway health harden notes | `docs: gateway harden` |
-| ✅ | 04:00 | Diff failure recovery notes | `docs: diff recovery` (catch-up) |
-| ⬜ | 04:30 | Screenshot / evidence folder stub | `docs: evidence stub` |
+| ✅ | 04:00 | Diff failure recovery notes | `docs: diff recovery` |
+| ✅ | 04:30 | Screenshot / evidence folder stub | `docs: evidence stub` |
 | ⬜ | 05:00+ | Rehearse + fix only as needed | keep half-hour commits |
 | ⬜ | 15:00 | **FEATURE FREEZE** | `chore: feature freeze` |
 

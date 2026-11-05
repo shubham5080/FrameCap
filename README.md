@@ -26,7 +26,8 @@ npm run smoke:first-tx   # faucet + VERIFY+SENDER Frame tx on live gateway
 ## Network
 See `src/lib/config.ts` (pinned from the live workshop gateway).  
 Gateway health / failover: [GATEWAY.md](./GATEWAY.md)  
-Diff failure recovery: [DIFF_RECOVERY.md](./DIFF_RECOVERY.md)
+Diff failure recovery: [DIFF_RECOVERY.md](./DIFF_RECOVERY.md)  
+Screenshot checklist: [evidence/README.md](./evidence/README.md)
 
 ## First admitted Frame tx (live)
 - Hash: `0x48f225e43d5a969285a27b0b13e8aeebef4c0ff7393d5b870191f539373a9bb6`
