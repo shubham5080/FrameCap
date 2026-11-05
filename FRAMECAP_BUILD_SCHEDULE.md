@@ -29,7 +29,8 @@
 | ✅ | 23:33 | `b29d02c` | `feat: raw rpc evidence` (origin; push GitHub if missing) |
 | ✅ | 00:26 | `a4bd5ef` | `fix: loading error states` |
 | ✅ | 00:49 | `fa8cdee` | `style: responsive basics` |
-| ⬜ | 00:54 | _(you push)_ | `docs: dry run evidence` |
+| ✅ | 00:54 | `a95fc25` | `docs: dry run evidence` |
+| ⬜ | 01:13 | _(you push)_ | `docs: demo talk track` |
 
 ---
 
@@ -42,8 +43,8 @@
 | ✅ | 23:15 | Raw RPC evidence in Diff | `feat: raw rpc evidence` |
 | ✅ | 23:45 | Loading/error states | `fix: loading error states` |
 | ✅ | 00:15 | Mobile usable layout | `style: responsive basics` |
-| ✅ | 00:45 | Diff dry run notes in README | `docs: dry run evidence` (ready — you push) |
-| ⬜ | 01:15 | Demo talk track polish | `docs: demo talk track` |
+| ✅ | 00:45 | Diff dry run notes in README | `docs: dry run evidence` |
+| ✅ | 01:15 | Demo talk track polish | `docs: demo talk track` (ready — you push) |
 | ⬜ | 01:45 | AI_USAGE / submission checklist | `docs: submission checklist` |
 | ⬜ | 02:15 | Tiny UX copy fixes | `fix: demo copy` |
 | ⬜ | 02:45 | Buffer / mentor notes | `docs: mentor notes` |
