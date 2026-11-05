@@ -66,16 +66,18 @@ export function StakeStatus() {
 
   return (
     <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6">
-      <h2 className="mb-2 text-sm font-medium text-zinc-300">Stake status</h2>
+      <h2 className="mb-2 text-sm font-medium text-zinc-300">
+        Stake on NaiveStakingRegistry
+      </h2>
       <p className="mb-4 text-sm text-zinc-500">
-        Read NaiveStakingRegistry for a wallet (paste address from Diff demo
-        after stake). Registry{" "}
+        Paste the wallet Diff prints after step 3. Alt admission needs ≥0.01 ETH
+        staked here. Registry{" "}
         <span className="break-anywhere font-mono text-zinc-400">
           {config.stakingRegistry}
         </span>
       </p>
       <label className="block text-xs text-zinc-500" htmlFor="stake-addr">
-        Wallet address
+        QuotaWallet address
       </label>
       <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <input
@@ -94,14 +96,14 @@ export function StakeStatus() {
           onClick={() => void lookup()}
           className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
         >
-          {busy ? "Reading…" : "Check stake"}
+          {busy ? "Checking…" : "Check stake"}
         </button>
       </div>
 
       {busy && (
         <div className="mt-3">
           <StatusLine kind="loading">
-            eth_call getDepositInfo on staking registry…
+            Reading getDepositInfo on the registry…
           </StatusLine>
         </div>
       )}
@@ -109,7 +111,7 @@ export function StakeStatus() {
       {!busy && !result && (
         <div className="mt-3">
           <StatusLine kind="idle">
-            Paste a wallet from Diff demo to see stake.
+            Waiting for a wallet address from Diff.
           </StatusLine>
         </div>
       )}
@@ -127,8 +129,8 @@ export function StakeStatus() {
             <>
               <StatusLine kind={result.isStaked ? "ok" : "error"}>
                 {result.isStaked
-                  ? "Staked (meets min stake, not withdrawing)"
-                  : "Not staked / below min / withdrawing"}
+                  ? "Staked — eligible for alt mempool rules"
+                  : "Not eligible — below min stake or withdrawing"}
               </StatusLine>
               <p className="text-zinc-400">
                 Amount{" "}

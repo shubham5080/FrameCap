@@ -103,21 +103,23 @@ export function DemoConsole() {
     <div className="space-y-6">
       <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-sm font-medium text-zinc-300">Gateway</h2>
+          <h2 className="text-sm font-medium text-zinc-300">
+            Alt mempool gateway
+          </h2>
           <button
             type="button"
             onClick={() => void refreshHealth()}
             className="text-xs text-emerald-400 hover:underline"
           >
-            Refresh
+            Recheck
           </button>
         </div>
         {healthLoading && (
-          <StatusLine kind="loading">Probing gateway…</StatusLine>
+          <StatusLine kind="loading">Checking gateway…</StatusLine>
         )}
         {healthErr && !healthLoading && (
           <div className="space-y-1">
-            <StatusLine kind="error">Health check failed</StatusLine>
+            <StatusLine kind="error">Gateway health failed</StatusLine>
             <p className="font-mono text-xs text-red-400/80">{healthErr}</p>
             <button
               type="button"
@@ -167,16 +169,17 @@ export function DemoConsole() {
 
       <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6">
         <h2 className="mb-2 text-sm font-medium text-zinc-300">
-          First admitted Frame tx
+          Smoke: first Frame tx
         </h2>
         <p className="mb-4 text-sm text-zinc-500">
-          Generate a key, ask the faucet if needed, sign a VERIFY+SENDER
-          self-relay, submit via eth_sendFrameTransaction, wait for inclusion.
+          Optional warm-up — faucet, sign VERIFY+SENDER self-relay, send with
+          eth_sendFrameTransaction, wait for inclusion. Use Diff below for the
+          prize demo.
         </p>
         {health?.ok === false && (
           <div className="mb-3">
             <StatusLine kind="error">
-              Gateway unreachable — fix health before sending a Frame tx.
+              Gateway down — restore health before sending.
             </StatusLine>
           </div>
         )}
@@ -186,13 +189,12 @@ export function DemoConsole() {
           onClick={() => void runFirstTx()}
           className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
         >
-          {busy ? "Sending…" : "Send first Frame tx"}
+          {busy ? "Sending Frame…" : "Send smoke Frame"}
         </button>
         {busy && (
           <div className="mt-3">
             <StatusLine kind="loading">
-              Faucet (if needed) → sign → eth_sendFrameTransaction → wait mine
-              (~1–2 min)
+              Faucet → sign → eth_sendFrameTransaction → mine (~1–2 min)
             </StatusLine>
           </div>
         )}
@@ -201,7 +203,7 @@ export function DemoConsole() {
           <div className="mt-4 space-y-2 text-sm">
             {result.ok ? (
               <>
-                <StatusLine kind="ok">Admitted and mined.</StatusLine>
+                <StatusLine kind="ok">Smoke Frame admitted and mined.</StatusLine>
                 <p className="break-anywhere text-zinc-400">
                   Sender{" "}
                   <span className="font-mono text-zinc-200">{result.address}</span>
@@ -223,14 +225,14 @@ export function DemoConsole() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Open in explorer →
+                    View on explorer →
                   </a>
                 )}
               </>
             ) : (
               <div className="space-y-1">
                 <StatusLine kind="error">
-                  Failed{result.code != null ? ` (${result.code})` : ""}
+                  Smoke failed{result.code != null ? ` (${result.code})` : ""}
                 </StatusLine>
                 <p className="break-all font-mono text-xs text-red-400/80">
                   {result.message}
@@ -241,7 +243,7 @@ export function DemoConsole() {
                   onClick={() => void runFirstTx()}
                   className="text-xs text-emerald-400 hover:underline disabled:opacity-40"
                 >
-                  Retry first Frame tx
+                  Retry smoke Frame
                 </button>
               </div>
             )}

@@ -21,19 +21,19 @@ export default function Home() {
             FrameCap
           </h1>
           <p className="max-w-2xl text-base leading-relaxed text-zinc-400 sm:text-lg">
-            Daily spend quotas enforced in EIP-8141 Frame validation. The
-            canonical public mempool rejects flexible quota state access; the
-            staked alternative mempool can admit it.
+            Daily spend caps inside EIP-8141 Frame VERIFY. Canonical mempool
+            rejects foreign quota storage; the staked alt mempool admits the
+            same Frame — until you go over quota.
           </p>
         </header>
 
         <section className="grid gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6">
-          <h2 className="text-sm font-medium text-zinc-300">Demo spine</h2>
+          <h2 className="text-sm font-medium text-zinc-300">Judge path</h2>
           <ol className="list-decimal space-y-2 pl-5 text-sm text-zinc-400 sm:text-base">
-            <li>Set a daily quota onchain</li>
-            <li>Canonical path rejects the Frame tx</li>
-            <li>Stake → alt mempool admits → explorer proof</li>
-            <li>Over-quota attempt is blocked</li>
+            <li>Pick a daily limit (gwei)</li>
+            <li>Run Diff — watch canonical reject</li>
+            <li>Stake, then alt admits with explorer proof</li>
+            <li>Over-quota VERIFY reverts (OverQuota)</li>
           </ol>
         </section>
 

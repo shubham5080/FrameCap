@@ -31,7 +31,8 @@
 | ✅ | 00:49 | `fa8cdee` | `style: responsive basics` |
 | ✅ | 00:54 | `a95fc25` | `docs: dry run evidence` |
 | ✅ | 01:13 | `46d203a` | `docs: demo talk track` |
-| ⬜ | 01:44 | _(you push)_ | `docs: submission checklist` |
+| ✅ | 01:44 | `1be9e5b` | `docs: submission checklist` |
+| ⬜ | 02:23 | _(you push)_ | `fix: demo copy` |
 
 ---
 
@@ -46,8 +47,8 @@
 | ✅ | 00:15 | Mobile usable layout | `style: responsive basics` |
 | ✅ | 00:45 | Diff dry run notes in README | `docs: dry run evidence` |
 | ✅ | 01:15 | Demo talk track polish | `docs: demo talk track` |
-| ✅ | 01:45 | AI_USAGE / submission checklist | `docs: submission checklist` (ready — you push) |
-| ⬜ | 02:15 | Tiny UX copy fixes | `fix: demo copy` |
+| ✅ | 01:45 | AI_USAGE / submission checklist | `docs: submission checklist` |
+| ✅ | 02:15 | Tiny UX copy fixes | `fix: demo copy` (ready — you push) |
 | ⬜ | 02:45 | Buffer / mentor notes | `docs: mentor notes` |
 
 ---

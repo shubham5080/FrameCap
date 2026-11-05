@@ -39,13 +39,13 @@ type DiffResult = {
 };
 
 const PHASES = [
-  "Deploying QuotaLedger + QuotaWallet…",
-  "Setting daily quota…",
-  "Probing canonical mempool…",
-  "Probing alt mempool…",
-  "Staking wallet…",
-  "Admitting post-stake spend…",
-  "Checking over-quota…",
+  "Deploy QuotaLedger + QuotaWallet…",
+  "Write daily quota onchain…",
+  "Canonical mempool probe…",
+  "Alt mempool (pre-stake)…",
+  "Stake on NaiveStakingRegistry…",
+  "Alt admit + record spend…",
+  "Over-quota VERIFY check…",
 ] as const;
 
 function VerdictRow({ label, v }: { label: string; v?: Verdict }) {
@@ -87,7 +87,7 @@ function VerdictRow({ label, v }: { label: string; v?: Verdict }) {
           target="_blank"
           rel="noreferrer"
         >
-          Explorer proof →
+          Open explorer proof →
         </a>
       )}
     </div>
@@ -144,12 +144,11 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
   return (
     <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6">
       <h2 className="mb-2 text-sm font-medium text-zinc-300">
-        Canonical vs alt Diff
+        Diff: canonical reject vs alt admit
       </h2>
       <p className="mb-4 text-sm text-zinc-500">
-        Deploy QuotaLedger + QuotaWallet, set the quota from the form above
-        ({dailyLimitGwei} gwei/day), then show canonical reject vs alt admit and
-        over-quota block.
+        Full prize spine at {dailyLimitGwei} gwei/day — deploy, quota, canonical
+        reject, stake, alt admit, then over-quota block. Keep this tab open.
       </p>
       <button
         type="button"
@@ -157,14 +156,14 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
         onClick={() => void run()}
         className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
       >
-        {busy ? "Running Diff…" : "Run Diff demo"}
+        {busy ? "Running Diff…" : "Run Diff (prize demo)"}
       </button>
 
       {busy && (
         <div className="mt-4 space-y-1">
           <StatusLine kind="loading">{PHASES[phase]}</StatusLine>
           <p className="text-xs text-zinc-600">
-            Live deploy + mine — usually 1–3 minutes. Keep this tab open.
+            Live gateway deploy + mine — typically 1–3 minutes.
           </p>
         </div>
       )}
@@ -172,7 +171,7 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
       {!busy && !result && (
         <div className="mt-4">
           <StatusLine kind="idle">
-            Idle — run Diff to capture canonical vs alt evidence.
+            Ready — start Diff when gateway health is green.
           </StatusLine>
         </div>
       )}
@@ -193,12 +192,14 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
                 onClick={() => void run()}
                 className="text-xs text-emerald-400 hover:underline"
               >
-                Retry Diff demo
+                Retry Diff
               </button>
             </div>
           ) : (
             <>
-              <StatusLine kind="ok">Diff complete — spine recorded.</StatusLine>
+              <StatusLine kind="ok">
+                Diff complete — canonical vs alt spine recorded.
+              </StatusLine>
               <p className="break-anywhere text-zinc-400">
                 Wallet{" "}
                 <span className="font-mono text-zinc-200">{result.wallet}</span>
@@ -210,26 +211,25 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
               </p>
               <div className="space-y-2">
                 <VerdictRow
-                  label="1. Canonical mempool"
+                  label="1. Canonical — expect reject"
                   v={result.canonical}
                 />
                 <VerdictRow
-                  label="2. Alt mempool (pre-stake)"
+                  label="2. Alt before stake — expect reject"
                   v={result.altBeforeStake}
                 />
                 <VerdictRow
-                  label="3. Alt after stake + record spend"
+                  label="3. Alt after stake — expect admit"
                   v={result.altAfterStake}
                 />
                 <VerdictRow
-                  label="4. Over-quota (VERIFY reverts)"
+                  label="4. Over quota — VERIFY reverts"
                   v={result.overQuota}
                 />
               </div>
               {result.stakeTxHash && (
                 <p className="font-mono text-xs text-zinc-500">
-                  stake tx {result.stakeTxHash} · stake {result.stakeAmountWei}{" "}
-                  wei
+                  stake {result.stakeTxHash} · {result.stakeAmountWei} wei
                 </p>
               )}
 
@@ -239,8 +239,7 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
                     Raw RPC evidence
                   </h3>
                   <p className="text-xs text-zinc-500">
-                    JSON-RPC methods used for each Diff step (gateway{" "}
-                    <span className="font-mono">/rpc</span>).
+                    Methods hit on the workshop gateway for each Diff step.
                   </p>
                   <ul className="space-y-2">
                     {result.rpcEvidence.map((e) => (

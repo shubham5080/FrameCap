@@ -16,13 +16,13 @@ export function SetQuotaForm({
 
   return (
     <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6">
-      <h2 className="mb-2 text-sm font-medium text-zinc-300">Set daily quota</h2>
+      <h2 className="mb-2 text-sm font-medium text-zinc-300">Daily quota</h2>
       <p className="mb-4 text-sm text-zinc-500">
-        Limit applied onchain to the QuotaWallet before the Diff demo runs
-        (VERIFY reads this via QuotaLedger).
+        Cap written onchain when Diff runs. Frame VERIFY reads it from
+        QuotaLedger (that foreign SLOAD is why canonical rejects).
       </p>
       <label className="block text-xs text-zinc-500" htmlFor="quota-gwei">
-        Daily limit (gwei)
+        Limit (gwei per day)
       </label>
       <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <input
@@ -41,11 +41,11 @@ export function SetQuotaForm({
           onClick={() => onChange(draft)}
           className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
         >
-          Apply to demo
+          Use for Diff
         </button>
       </div>
       <p className="mt-3 text-xs text-zinc-500">
-        Active for Diff:{" "}
+        Diff will deploy with{" "}
         <span className="font-mono text-zinc-300">{limitGwei} gwei/day</span>
       </p>
     </section>
