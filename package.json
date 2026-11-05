@@ -1,0 +1,35 @@
+{
+  "name": "framecap",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 43127",
+    "build": "next build",
+    "start": "next start --port 43127",
+    "lint": "next lint",
+    "smoke:first-tx": "node scripts/smoke-first-tx.mjs",
+    "smoke:diff": "node scripts/smoke-diff-demo.mjs",
+    "smoke:debug-probe": "node scripts/debug-alt-probe.mjs",
+    "contracts:build": "cd contracts && forge build",
+    "contracts:test": "cd contracts && forge test"
+  },
+  "dependencies": {
+    "@forshtat/hegota-support": "^0.0.1",
+    "next": "^15.5.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "viem": "^2.57.7"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.1.0",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  },
+  "description": "Daily spend quotas for EIP-8141 Frames via the alternative mempool"
+}
