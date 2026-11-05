@@ -61,8 +61,8 @@
 | Slot | Time | Task | Commit |
 |------|------|------|--------|
 | ✅ | 03:00 | Sync README / talk track to UI labels | `docs: sync ui labels` |
-| ✅ | 03:30 | Gateway health harden notes | `docs: gateway harden` (catch-up) |
-| ⬜ | 04:00 | Diff failure recovery notes | `docs: diff recovery` |
+| ✅ | 03:30 | Gateway health harden notes | `docs: gateway harden` |
+| ✅ | 04:00 | Diff failure recovery notes | `docs: diff recovery` (catch-up) |
 | ⬜ | 04:30 | Screenshot / evidence folder stub | `docs: evidence stub` |
 | ⬜ | 05:00+ | Rehearse + fix only as needed | keep half-hour commits |
 | ⬜ | 15:00 | **FEATURE FREEZE** | `chore: feature freeze` |
