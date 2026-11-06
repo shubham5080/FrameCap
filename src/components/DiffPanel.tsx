@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { humanRejection } from "@/lib/explain";
+import { humanFailure, humanRejection } from "@/lib/explain";
 import { StatusLine } from "@/components/StatusLine";
 import {
   Badge,
@@ -44,16 +44,18 @@ type DiffResult = {
   altAfterStake?: Verdict;
   overQuota?: Verdict;
   rpcEvidence?: RpcEvidence[];
+  mode?: "live" | "recorded";
+  notice?: string;
 };
 
 const PHASES = [
-  "Deploy QuotaLedger + QuotaWallet…",
-  "Write daily quota onchain…",
-  "Canonical mempool probe…",
-  "Alt mempool (pre-stake)…",
-  "Stake on NaiveStakingRegistry…",
-  "Alt admit + record spend…",
-  "Over-quota VERIFY check…",
+  "Creating the quota contracts…",
+  "Writing your daily limit…",
+  "Trying the public mempool…",
+  "Trying the alt mempool (before stake)…",
+  "Staking the wallet…",
+  "Trying the alt mempool again…",
+  "Trying a spend over the daily limit…",
 ] as const;
 
 function VerdictRow({
@@ -68,17 +70,13 @@ function VerdictRow({
   v?: Verdict;
 }) {
   if (!v) return null;
-  const tone = v.skipped
-    ? "idle"
-    : v.accepted
-      ? "ok"
-      : "bad";
+  const tone = v.skipped ? "idle" : v.accepted ? "ok" : "bad";
   const human = !v.accepted && !v.skipped ? humanRejection(v.message) : null;
   const text = v.skipped
-    ? `skipped — ${v.skipped}`
+    ? `Skipped — ${v.skipped}`
     : v.accepted
-      ? "ADMITTED"
-      : `REJECTED [${human?.rule ?? v.rule ?? "?"}]`;
+      ? "Allowed"
+      : "Blocked";
 
   return (
     <tr className="border-t border-morpho-line bg-white">
@@ -93,11 +91,6 @@ function VerdictRow({
             {human.title} — {human.detail}
           </p>
         )}
-        {v.message && (
-          <p className="mt-1 max-w-xl break-all font-mono text-[11px] text-morpho-muted">
-            {v.message}
-          </p>
-        )}
         {(v.explorerUrl || v.txHash) && (
           <a
             className="mt-2 inline-flex text-xs font-medium text-morpho-blue hover:underline"
@@ -108,7 +101,7 @@ function VerdictRow({
             target="_blank"
             rel="noreferrer"
           >
-            Open explorer proof →
+            Open proof on explorer →
           </a>
         )}
       </td>
@@ -119,15 +112,17 @@ function VerdictRow({
   );
 }
 
-export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string }) {
+export function DiffPanel({ dailyLimitEth = "0.001" }: { dailyLimitEth?: string }) {
   const [busy, setBusy] = useState(false);
   const [phase, setPhase] = useState(0);
   const [result, setResult] = useState<DiffResult | null>(null);
+  const [showTech, setShowTech] = useState(false);
 
   async function run() {
     setBusy(true);
     setResult(null);
     setPhase(0);
+    setShowTech(false);
     const tick = window.setInterval(() => {
       setPhase((p) => (p + 1) % PHASES.length);
     }, 4000);
@@ -135,7 +130,7 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
       const res = await fetch("/api/diff-demo", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ dailyLimitGwei: Number(dailyLimitGwei) }),
+        body: JSON.stringify({ dailyLimitEth }),
       });
       let data: DiffResult;
       try {
@@ -143,7 +138,7 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
       } catch {
         setResult({
           ok: false,
-          message: `Bad JSON from /api/diff-demo (HTTP ${res.status})`,
+          message: `Bad response from comparison (HTTP ${res.status})`,
         });
         return;
       }
@@ -168,12 +163,20 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
 
   return (
     <Panel className="fc-enter fc-enter-delay-2">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-morpho-blue">
+        2 · Live proof
+      </p>
+      <div className="mt-1 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-xl">
-          <PanelTitle>Diff: canonical reject vs alt admit</PanelTitle>
+          <PanelTitle>Prove the spend limit on the test network</PanelTitle>
           <PanelHint>
-            Full prize spine at {dailyLimitGwei} gwei/day — deploy, quota,
-            canonical reject, stake, alt admit, then over-quota block.
+            One button. You’ll get four clear outcomes: public path blocked, alt
+            path blocked until stake, alt path allowed after stake, over-limit
+            blocked.             Limit:{" "}
+            <span className="font-medium text-morpho-ink">
+              {dailyLimitEth} ETH/day
+            </span>
+            .
           </PanelHint>
         </div>
         <PrimaryButton
@@ -182,7 +185,7 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
           onClick={() => void run()}
           className="w-full shrink-0 sm:w-auto"
         >
-          {busy ? "Running Diff…" : "Run Diff (prize demo)"}
+          {busy ? "Running…" : "Run live proof"}
         </PrimaryButton>
       </div>
 
@@ -190,7 +193,7 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
         <div className="mt-5 space-y-1 rounded-xl border border-morpho-line bg-morpho-bg px-4 py-3">
           <StatusLine kind="loading">{PHASES[phase]}</StatusLine>
           <p className="text-xs text-morpho-muted">
-            Live gateway deploy + mine — typically 1–3 minutes.
+            This talks to the live test network — usually 1–3 minutes. Keep the tab open.
           </p>
         </div>
       )}
@@ -198,7 +201,7 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
       {!busy && !result && (
         <div className="mt-5">
           <StatusLine kind="idle">
-            Ready — start Diff when gateway health is green.
+            Ready when you are — make sure Step 1 is saved and the network is online.
           </StatusLine>
         </div>
       )}
@@ -207,40 +210,68 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
         <div className="mt-5 space-y-4">
           {!result.ok ? (
             <div className="space-y-2 rounded-xl border border-morpho-red/20 bg-morpho-redSoft px-4 py-3">
-              <StatusLine kind="error">
-                Diff failed
-                {result.code != null ? ` (${result.code})` : ""}
-              </StatusLine>
-              <p className="break-all font-mono text-xs text-morpho-red/80">
-                {result.message ?? "Unknown error"}
-              </p>
+              {(() => {
+                const fail = humanFailure(result.message);
+                return (
+                  <>
+                    <StatusLine kind="error">
+                      {fail?.title ??
+                        `Comparison failed${result.code != null ? ` (${result.code})` : ""}`}
+                    </StatusLine>
+                    <p className="text-sm text-morpho-ink/80">
+                      {fail?.detail ??
+                        "Something went wrong talking to the test network."}
+                    </p>
+                    <p className="break-all font-mono text-xs text-morpho-red/80">
+                      {result.message ?? "Unknown error"}
+                    </p>
+                    <p className="text-xs text-morpho-muted">
+                      Backup explorer proof:{" "}
+                      <a
+                        className="font-medium text-morpho-blue hover:underline"
+                        href="https://explorer.altmempool.wtf/tx/0xedb83a3de6bfd8c16202d03f64af7094d5fe1b1d6662630861c8695352233daa"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        open mined Diff tx →
+                      </a>
+                    </p>
+                  </>
+                );
+              })()}
               <GhostButton type="button" onClick={() => void run()}>
-                Retry Diff
+                Try again
               </GhostButton>
             </div>
           ) : (
             <>
               <div className="flex flex-wrap items-center gap-2">
-                <Badge tone="ok">Complete</Badge>
+                <Badge tone={result.mode === "recorded" ? "info" : "ok"}>
+                  {result.mode === "recorded" ? "Recorded proof" : "Live proof"}
+                </Badge>
                 <StatusLine kind="ok">
-                  Canonical vs alt spine recorded.
+                  {result.mode === "recorded"
+                    ? "Faucet was empty — showing a prior successful live proof."
+                    : "Comparison finished — read the four results below."}
                 </StatusLine>
               </div>
+              {result.notice && (
+                <p className="rounded-xl bg-morpho-blueSoft px-3.5 py-3 text-sm text-morpho-ink">
+                  {result.notice}
+                </p>
+              )}
 
               <div className="grid gap-2 sm:grid-cols-2">
                 <div className="rounded-xl border border-morpho-line bg-morpho-bg px-3.5 py-3">
-                  <p className="text-xs text-morpho-muted">Wallet</p>
+                  <p className="text-xs text-morpho-muted">Demo wallet</p>
                   <p className="mt-0.5 break-anywhere font-mono text-xs text-morpho-ink">
                     {result.wallet}
                   </p>
                 </div>
                 <div className="rounded-xl border border-morpho-line bg-morpho-bg px-3.5 py-3">
-                  <p className="text-xs text-morpho-muted">Ledger · limit</p>
-                  <p className="mt-0.5 break-anywhere font-mono text-xs text-morpho-ink">
-                    {result.ledger}
-                  </p>
-                  <p className="mt-1 font-mono text-xs text-morpho-muted">
-                    {result.dailyLimitWei} wei/day
+                  <p className="text-xs text-morpho-muted">Daily limit onchain</p>
+                  <p className="mt-0.5 font-mono text-xs text-morpho-ink">
+                    {dailyLimitEth} ETH/day
                   </p>
                 </div>
               </div>
@@ -249,92 +280,88 @@ export function DiffPanel({ dailyLimitGwei = "5" }: { dailyLimitGwei?: string })
                 <table className="w-full text-left">
                   <thead className="bg-morpho-bg text-xs font-medium uppercase tracking-wide text-morpho-muted">
                     <tr>
-                      <th className="px-3.5 py-2.5">Step</th>
-                      <th className="px-3.5 py-2.5">Market path</th>
-                      <th className="px-3.5 py-2.5 text-right">Result</th>
+                      <th className="px-3.5 py-2.5">#</th>
+                      <th className="px-3.5 py-2.5">What we tried</th>
+                      <th className="px-3.5 py-2.5 text-right">Outcome</th>
                     </tr>
                   </thead>
                   <tbody>
                     <VerdictRow
                       step="01"
-                      label="Canonical mempool"
-                      expect="Expect reject"
+                      label="Public mempool"
+                      expect="Should block — quota storage isn’t allowed there"
                       v={result.canonical}
                     />
                     <VerdictRow
                       step="02"
-                      label="Alt before stake"
-                      expect="Expect reject"
+                      label="Alt mempool, before stake"
+                      expect="Should still block until the wallet is staked"
                       v={result.altBeforeStake}
                     />
                     <VerdictRow
                       step="03"
-                      label="Alt after stake"
-                      expect="Expect admit"
+                      label="Alt mempool, after stake"
+                      expect="Should allow the same spend"
                       v={result.altAfterStake}
                     />
                     <VerdictRow
                       step="04"
-                      label="Over quota"
-                      expect="VERIFY reverts"
+                      label="Spend over the daily limit"
+                      expect="Should block even on the alt mempool"
                       v={result.overQuota}
                     />
                   </tbody>
                 </table>
               </div>
 
-              {result.stakeTxHash && (
-                <p className="font-mono text-xs text-morpho-muted">
-                  stake {result.stakeTxHash} · {result.stakeAmountWei} wei
-                </p>
-              )}
-
               {result.rpcEvidence && result.rpcEvidence.length > 0 && (
-                <div className="space-y-3">
-                  <div>
-                    <h3 className="text-sm font-semibold text-morpho-ink">
-                      Raw RPC evidence
-                    </h3>
-                    <p className="mt-1 text-xs text-morpho-muted">
-                      Methods hit on the workshop gateway for each Diff step.
-                    </p>
-                  </div>
-                  <div className="overflow-hidden rounded-xl border border-morpho-line">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-morpho-bg text-[11px] font-medium uppercase tracking-wide text-morpho-muted">
-                        <tr>
-                          <th className="px-3.5 py-2.5">Step</th>
-                          <th className="px-3.5 py-2.5">Method</th>
-                          <th className="px-3.5 py-2.5 text-right">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-morpho-line">
-                        {result.rpcEvidence.map((e) => (
-                          <tr key={e.step} className="bg-white">
-                            <td className="px-3.5 py-3 align-top">
-                              <p className="font-medium text-morpho-ink">
-                                {e.step}
-                              </p>
-                              <p className="mt-1 text-morpho-muted">
-                                {e.paramsNote}
-                              </p>
-                              <p className="mt-1 break-anywhere font-mono text-[11px] text-morpho-muted">
-                                {e.result}
-                              </p>
-                            </td>
-                            <td className="px-3.5 py-3 align-top font-mono text-morpho-blue">
-                              {e.method}
-                            </td>
-                            <td className="px-3.5 py-3 align-top text-right">
-                              <Badge tone={e.ok ? "ok" : "bad"}>
-                                {e.ok ? "ok" : "error"}
-                              </Badge>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                <div>
+                  <GhostButton type="button" onClick={() => setShowTech((s) => !s)}>
+                    {showTech ? "Hide technical details" : "Show technical details"}
+                  </GhostButton>
+                  {showTech && (
+                    <div className="mt-3 space-y-3">
+                      <p className="text-xs text-morpho-muted">
+                        Raw JSON-RPC calls used for each step (for judges / mentors).
+                      </p>
+                      <div className="overflow-hidden rounded-xl border border-morpho-line">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-morpho-bg text-[11px] font-medium uppercase tracking-wide text-morpho-muted">
+                            <tr>
+                              <th className="px-3.5 py-2.5">Step</th>
+                              <th className="px-3.5 py-2.5">Method</th>
+                              <th className="px-3.5 py-2.5 text-right">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-morpho-line">
+                            {result.rpcEvidence.map((e) => (
+                              <tr key={e.step} className="bg-white">
+                                <td className="px-3.5 py-3 align-top">
+                                  <p className="font-medium text-morpho-ink">
+                                    {e.step}
+                                  </p>
+                                  <p className="mt-1 text-morpho-muted">
+                                    {e.paramsNote}
+                                  </p>
+                                  <p className="mt-1 break-anywhere font-mono text-[11px] text-morpho-muted">
+                                    {e.result}
+                                  </p>
+                                </td>
+                                <td className="px-3.5 py-3 align-top font-mono text-morpho-blue">
+                                  {e.method}
+                                </td>
+                                <td className="px-3.5 py-3 align-top text-right">
+                                  <Badge tone={e.ok ? "ok" : "bad"}>
+                                    {e.ok ? "ok" : "error"}
+                                  </Badge>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { config } from "@/lib/config";
 import { StatusLine } from "@/components/StatusLine";
 import {
   Badge,
@@ -35,7 +34,7 @@ export function StakeStatus() {
     if (!/^0x[a-fA-F0-9]{40}$/.test(trimmed)) {
       setResult({
         ok: false,
-        message: "Enter a 42-character 0x address before checking stake.",
+        message: "Paste a wallet address that starts with 0x (42 characters).",
       });
       return;
     }
@@ -52,7 +51,7 @@ export function StakeStatus() {
       } catch {
         setResult({
           ok: false,
-          message: `Bad JSON from /api/stake (HTTP ${res.status})`,
+          message: `Could not read stake status (HTTP ${res.status}).`,
         });
         return;
       }
@@ -77,28 +76,27 @@ export function StakeStatus() {
     <Panel>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <PanelTitle>Stake on NaiveStakingRegistry</PanelTitle>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-morpho-blue">
+            Network tool
+          </p>
+          <PanelTitle>Look up a wallet stake</PanelTitle>
           <PanelHint>
-            Paste the wallet Diff prints after step 3. Alt admission needs ≥0.01 ETH
-            staked here.
+            Optional. Paste any wallet address to see if it has stake on the
+            alt-mempool registry. You do not need this for the live proof.
           </PanelHint>
         </div>
         {result?.ok && (
           <Badge tone={result.isStaked ? "ok" : "bad"}>
-            {result.isStaked ? "Eligible" : "Not eligible"}
+            {result.isStaked ? "Staked" : "Not staked"}
           </Badge>
         )}
       </div>
-
-      <p className="mt-3 break-anywhere font-mono text-[11px] text-morpho-muted">
-        {config.stakingRegistry}
-      </p>
 
       <label
         className="mt-5 mb-1.5 block text-xs font-medium text-morpho-muted"
         htmlFor="stake-addr"
       >
-        QuotaWallet address
+        Wallet address
       </label>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Field
@@ -123,16 +121,14 @@ export function StakeStatus() {
 
       {busy && (
         <div className="mt-4">
-          <StatusLine kind="loading">
-            Reading getDepositInfo on the registry…
-          </StatusLine>
+          <StatusLine kind="loading">Looking up stake…</StatusLine>
         </div>
       )}
 
       {!busy && !result && (
         <div className="mt-4">
           <StatusLine kind="idle">
-            Waiting for a wallet address from Diff.
+            Paste a 0x wallet address only if you want a stake lookup.
           </StatusLine>
         </div>
       )}
@@ -141,7 +137,7 @@ export function StakeStatus() {
         <div className="mt-4 space-y-2 border-t border-morpho-line pt-4 text-sm">
           {!result.ok ? (
             <div className="space-y-1">
-              <StatusLine kind="error">Lookup failed</StatusLine>
+              <StatusLine kind="error">Couldn’t check stake</StatusLine>
               <p className="break-all font-mono text-xs text-morpho-red/80">
                 {result.message}
               </p>
@@ -150,25 +146,25 @@ export function StakeStatus() {
             <>
               <StatusLine kind={result.isStaked ? "ok" : "error"}>
                 {result.isStaked
-                  ? "Staked — eligible for alt mempool rules"
-                  : "Not eligible — below min stake or withdrawing"}
+                  ? "This wallet is staked — alt mempool can apply flexible rules."
+                  : "This wallet is not staked enough yet."}
               </StatusLine>
               <div className="grid gap-2 sm:grid-cols-2">
                 <div className="rounded-xl bg-morpho-bg px-3.5 py-3">
-                  <p className="text-xs text-morpho-muted">Amount</p>
+                  <p className="text-xs text-morpho-muted">Staked amount</p>
                   <p className="mt-0.5 font-mono text-sm font-medium text-morpho-ink">
                     {result.amountEth} ETH
                   </p>
                 </div>
                 <div className="rounded-xl bg-morpho-bg px-3.5 py-3">
-                  <p className="text-xs text-morpho-muted">Unstake delay</p>
+                  <p className="text-xs text-morpho-muted">Unstake wait</p>
                   <p className="mt-0.5 font-mono text-sm font-medium text-morpho-ink">
                     {result.unstakeDelaySec}s
                   </p>
                 </div>
               </div>
               <GhostButton type="button" onClick={() => void lookup()}>
-                Refresh stake
+                Refresh
               </GhostButton>
             </>
           )}
