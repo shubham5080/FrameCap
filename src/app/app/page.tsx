@@ -68,8 +68,8 @@ export default function AppPage() {
                 d: "Example: only 0.001 ETH, or 10 USDC / USDT, can leave today.",
               },
               {
-                t: "You allowlist destinations",
-                d: "Only approved addresses can receive funds from this wallet.",
+                t: "Optional allowlist",
+                d: "Lock who can get paid — or skip it and only use the daily cap.",
               },
               {
                 t: "Bad spend = blocked",

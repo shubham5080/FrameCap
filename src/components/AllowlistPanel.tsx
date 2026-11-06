@@ -18,25 +18,24 @@ function shortAddr(a: string) {
 }
 
 function loadStored(): string[] {
-  if (typeof window === "undefined") return [config.recipient];
+  if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [config.recipient];
+    if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return [config.recipient];
-    const addrs = parsed.filter(
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
       (x): x is string =>
         typeof x === "string" && /^0x[a-fA-F0-9]{40}$/.test(x),
     );
-    return addrs.length > 0 ? addrs : [config.recipient];
   } catch {
-    return [config.recipient];
+    return [];
   }
 }
 
-/** Step — destinations this wallet is allowed to send to. */
+/** Optional step — destinations this wallet may send to. Empty = open. */
 export function AllowlistPanel() {
-  const [addrs, setAddrs] = useState<string[]>([config.recipient]);
+  const [addrs, setAddrs] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -70,53 +69,63 @@ export function AllowlistPanel() {
   }
 
   function remove(addr: string) {
-    const next = addrs.filter((a) => a.toLowerCase() !== addr.toLowerCase());
-    // Always keep at least the workshop recipient so Diff still has a target.
-    if (next.length === 0) {
-      persist([config.recipient]);
-      return;
-    }
-    persist(next);
+    persist(addrs.filter((a) => a.toLowerCase() !== addr.toLowerCase()));
   }
+
+  const openMode = addrs.length === 0;
 
   return (
     <Panel>
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-morpho-blue">
-        1b · Destinations
+        1b · Destinations · Optional
       </p>
       <PanelTitle>Who can this wallet send to?</PanelTitle>
       <PanelHint>
-        Allowlisted destinations only. If an address is not on this list, the
-        spend is blocked — even under the daily cap. Live Diff uses the workshop
-        recipient below.
+        Optional. Leave this empty if you don’t want an allowlist — the wallet
+        can send to anyone (daily cap still applies). Add addresses only if you
+        want to lock payments to specific destinations.
       </PanelHint>
 
-      <ul className="mt-5 space-y-2">
-        {addrs.map((a) => (
-          <li
-            key={a}
-            className="flex items-center justify-between gap-3 rounded-xl border border-morpho-line bg-morpho-bg px-3.5 py-3"
-          >
-            <div className="min-w-0">
-              <p className="truncate font-mono text-xs text-morpho-ink">{a}</p>
-              {a.toLowerCase() === config.recipient.toLowerCase() && (
-                <p className="mt-0.5 text-[11px] text-morpho-muted">
-                  Workshop Diff recipient · {shortAddr(a)}
-                </p>
-              )}
-            </div>
-            <GhostButton type="button" onClick={() => remove(a)}>
-              Remove
-            </GhostButton>
-          </li>
-        ))}
-      </ul>
+      <div
+        className={
+          openMode
+            ? "mt-5 rounded-xl border border-morpho-line bg-morpho-hero/70 px-3.5 py-3 text-sm text-morpho-muted"
+            : "mt-5 rounded-xl border border-morpho-blue/20 bg-morpho-blueSoft px-3.5 py-3 text-sm text-morpho-ink"
+        }
+      >
+        {openMode
+          ? "No allowlist — destinations are open. Only the daily spend cap is enforced."
+          : `Allowlist on — only these ${addrs.length} address${addrs.length === 1 ? "" : "es"} can receive funds.`}
+      </div>
+
+      {addrs.length > 0 && (
+        <ul className="mt-4 space-y-2">
+          {addrs.map((a) => (
+            <li
+              key={a}
+              className="flex items-center justify-between gap-3 rounded-xl border border-morpho-line bg-morpho-bg px-3.5 py-3"
+            >
+              <div className="min-w-0">
+                <p className="truncate font-mono text-xs text-morpho-ink">{a}</p>
+                {a.toLowerCase() === config.recipient.toLowerCase() && (
+                  <p className="mt-0.5 text-[11px] text-morpho-muted">
+                    Workshop recipient · {shortAddr(a)}
+                  </p>
+                )}
+              </div>
+              <GhostButton type="button" onClick={() => remove(a)}>
+                Remove
+              </GhostButton>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <label
         className="mt-5 mb-1.5 block text-xs font-medium text-morpho-muted"
         htmlFor="allow-dest"
       >
-        Add destination address
+        Add destination address (optional)
       </label>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Field
@@ -137,8 +146,14 @@ export function AllowlistPanel() {
           Add address
         </PrimaryButton>
       </div>
-      {error && (
-        <p className="mt-2 text-xs text-morpho-red">{error}</p>
+      {error && <p className="mt-2 text-xs text-morpho-red">{error}</p>}
+
+      {!openMode && (
+        <div className="mt-3">
+          <GhostButton type="button" onClick={() => persist([])}>
+            Clear allowlist (open to anyone)
+          </GhostButton>
+        </div>
       )}
     </Panel>
   );
