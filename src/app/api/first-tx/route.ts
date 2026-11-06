@@ -3,7 +3,7 @@ import { bootstrapFirstAdmittedTx } from "@/lib/chain";
 import { RpcError } from "@/lib/rpc";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 180;
+export const maxDuration = 60;
 
 export async function POST() {
   try {
