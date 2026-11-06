@@ -270,17 +270,7 @@ function parseDailyLimit(opts?: {
   return parseEther("0.001");
 }
 
-function shouldUseRecordedFallback(message: string): boolean {
-  return (
-    isFaucetEmptyError(message) ||
-    message === "DIFF_TIMEOUT" ||
-    /not mined within/i.test(message) ||
-    /timed?\s*out|timeout/i.test(message) ||
-    /fetch failed|ECONNRESET|ETIMEDOUT|ENETUNREACH|503|502/i.test(message)
-  );
-}
-
-/** Full FrameCap spine with a hard budget — slow/empty gateway falls back to recorded proof. */
+/** Full FrameCap spine with a hard budget — any live failure falls back to recorded proof. */
 export async function runDiffDemo(opts?: {
   /** Preferred: daily limit in ETH (e.g. 0.001). */
   dailyLimitEth?: string | number;
@@ -297,18 +287,20 @@ export async function runDiffDemo(opts?: {
     ]);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    if (shouldUseRecordedFallback(msg)) {
-      const recorded = recordedDiffDemo(dailyLimit);
-      if (msg === "DIFF_TIMEOUT" || /not mined within/i.test(msg)) {
-        return {
-          ...recorded,
-          notice:
-            "Live testnet was too slow — showing a recorded successful Diff proof instead.",
-        };
-      }
-      return recorded;
-    }
-    throw e;
+    console.warn("diff-demo live path failed; using recorded proof:", msg);
+    const recorded = recordedDiffDemo(dailyLimit);
+    const slow =
+      msg === "DIFF_TIMEOUT" ||
+      /not mined within/i.test(msg) ||
+      /timed?\s*out|timeout/i.test(msg);
+    return {
+      ...recorded,
+      notice: slow
+        ? "Live testnet was too slow — showing a recorded successful Diff proof instead."
+        : isFaucetEmptyError(msg)
+          ? recorded.notice
+          : `Live run failed (${msg.slice(0, 120)}). Showing a recorded successful Diff proof instead.`,
+    };
   }
 }
 
