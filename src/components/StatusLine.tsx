@@ -10,11 +10,11 @@ export function StatusLine({
 }) {
   const tone =
     kind === "error"
-      ? "text-red-400"
+      ? "text-morpho-red"
       : kind === "ok"
-        ? "text-emerald-400"
+        ? "text-morpho-green"
         : kind === "loading"
-          ? "text-amber-300"
-          : "text-zinc-500";
-  return <p className={`text-sm ${tone}`}>{children}</p>;
+          ? "text-morpho-amber fc-loading"
+          : "text-morpho-muted";
+  return <p className={`text-sm font-medium ${tone}`}>{children}</p>;
 }

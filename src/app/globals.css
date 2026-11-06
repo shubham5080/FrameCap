@@ -3,20 +3,60 @@
 @tailwind utilities;
 
 :root {
-  --background: #09090b;
-  --foreground: #f4f4f5;
+  --background: #f7f8fa;
+  --foreground: #0d0d0d;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-framecap-sans), ui-sans-serif, system-ui, sans-serif;
   overflow-x: hidden;
   -webkit-text-size-adjust: 100%;
 }
 
-/* Long hashes / RPC URLs wrap on narrow screens */
 .break-anywhere {
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+@keyframes fc-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fc-pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.fc-enter {
+  animation: fc-fade-up 0.45s ease-out both;
+}
+
+.fc-enter-delay-1 {
+  animation-delay: 0.06s;
+}
+
+.fc-enter-delay-2 {
+  animation-delay: 0.12s;
+}
+
+.fc-enter-delay-3 {
+  animation-delay: 0.18s;
+}
+
+.fc-loading {
+  animation: fc-pulse-soft 1.4s ease-in-out infinite;
 }

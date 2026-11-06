@@ -37,7 +37,7 @@
 | ✅ | 03:13 | `f694290` | `docs: sync ui labels` |
 | ✅ | 04:58 | `eb734c6` | `docs: gateway harden` |
 | ✅ | 04:58 | `e2351cc` | `docs: diff recovery` |
-| ⬜ | 04:58 | _(you push)_ | catch-up: gateway + diff recovery + evidence |
+| ⬜ | 07:06 | _(you push)_ | catch-up harden (3) + `style: morpho ui` |
 
 ---
 
@@ -66,7 +66,8 @@
 | ✅ | 03:30 | Gateway health harden notes | `docs: gateway harden` |
 | ✅ | 04:00 | Diff failure recovery notes | `docs: diff recovery` |
 | ✅ | 04:30 | Screenshot / evidence folder stub | `docs: evidence stub` |
-| ⬜ | 05:00+ | Rehearse + fix only as needed | keep half-hour commits |
+| ✅ | 07:06 | Morpho Blue–inspired light UI | `style: morpho ui` (ready — you push) |
+| ⬜ | 07:30+ | Rehearse + fix only as needed | keep half-hour commits |
 | ⬜ | 15:00 | **FEATURE FREEZE** | `chore: feature freeze` |
 
 ---

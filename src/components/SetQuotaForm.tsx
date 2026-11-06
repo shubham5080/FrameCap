@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Field, Panel, PanelHint, PanelTitle, PrimaryButton } from "@/components/ui";
 
 /** Local demo control — Diff demo reads this limit when you run it. */
 export function SetQuotaForm({
@@ -15,17 +16,20 @@ export function SetQuotaForm({
   const valid = Number.isFinite(parsed) && parsed > 0;
 
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6">
-      <h2 className="mb-2 text-sm font-medium text-zinc-300">Daily quota</h2>
-      <p className="mb-4 text-sm text-zinc-500">
-        Cap written onchain when Diff runs. Frame VERIFY reads it from
-        QuotaLedger (that foreign SLOAD is why canonical rejects).
-      </p>
-      <label className="block text-xs text-zinc-500" htmlFor="quota-gwei">
+    <Panel>
+      <PanelTitle>Daily quota</PanelTitle>
+      <PanelHint>
+        Cap written onchain when Diff runs. Frame VERIFY reads it from QuotaLedger
+        — that foreign SLOAD is why canonical rejects.
+      </PanelHint>
+      <label
+        className="mt-5 mb-1.5 block text-xs font-medium text-morpho-muted"
+        htmlFor="quota-gwei"
+      >
         Limit (gwei per day)
       </label>
-      <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <input
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <Field
           id="quota-gwei"
           type="number"
           min={1}
@@ -33,21 +37,23 @@ export function SetQuotaForm({
           inputMode="numeric"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 outline-none focus:border-emerald-500 sm:w-36"
+          className="sm:w-40"
         />
-        <button
+        <PrimaryButton
           type="button"
           disabled={!valid}
           onClick={() => onChange(draft)}
-          className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+          className="w-full sm:w-auto"
         >
           Use for Diff
-        </button>
+        </PrimaryButton>
       </div>
-      <p className="mt-3 text-xs text-zinc-500">
+      <p className="mt-4 text-xs text-morpho-muted">
         Diff will deploy with{" "}
-        <span className="font-mono text-zinc-300">{limitGwei} gwei/day</span>
+        <span className="font-mono font-medium text-morpho-ink">
+          {limitGwei} gwei/day
+        </span>
       </p>
-    </section>
+    </Panel>
   );
 }

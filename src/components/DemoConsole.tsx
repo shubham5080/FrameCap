@@ -2,6 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { StatusLine } from "@/components/StatusLine";
+import {
+  Badge,
+  GhostButton,
+  Panel,
+  PanelHint,
+  PanelTitle,
+  PrimaryButton,
+} from "@/components/ui";
 
 type Health = {
   ok: boolean;
@@ -37,7 +45,6 @@ export function DemoConsole() {
   const [healthErr, setHealthErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<FirstTx | null>(null);
-
   const [healthLoading, setHealthLoading] = useState(true);
 
   const refreshHealth = useCallback(async () => {
@@ -100,97 +107,110 @@ export function DemoConsole() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-sm font-medium text-zinc-300">
-            Alt mempool gateway
-          </h2>
-          <button
-            type="button"
-            onClick={() => void refreshHealth()}
-            className="text-xs text-emerald-400 hover:underline"
-          >
-            Recheck
-          </button>
+    <div className="space-y-4">
+      <Panel>
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <PanelTitle>Alt mempool gateway</PanelTitle>
+            <PanelHint>Workshop sidecar health before Diff.</PanelHint>
+          </div>
+          <div className="flex items-center gap-2">
+            {!healthLoading && health && (
+              <Badge tone={health.ok ? "ok" : "bad"}>
+                {health.ok ? "Reachable" : "Down"}
+              </Badge>
+            )}
+            <GhostButton type="button" onClick={() => void refreshHealth()}>
+              Recheck
+            </GhostButton>
+          </div>
         </div>
+
         {healthLoading && (
           <StatusLine kind="loading">Checking gateway…</StatusLine>
         )}
         {healthErr && !healthLoading && (
           <div className="space-y-1">
             <StatusLine kind="error">Gateway health failed</StatusLine>
-            <p className="font-mono text-xs text-red-400/80">{healthErr}</p>
-            <button
-              type="button"
-              onClick={() => void refreshHealth()}
-              className="text-xs text-emerald-400 hover:underline"
-            >
+            <p className="font-mono text-xs text-morpho-red/80">{healthErr}</p>
+            <GhostButton type="button" onClick={() => void refreshHealth()}>
               Retry health
-            </button>
+            </GhostButton>
           </div>
         )}
         {health && !healthLoading && (
-          <dl className="grid gap-2 text-sm text-zinc-400 sm:grid-cols-2">
-            <div>
-              <dt className="text-zinc-500">Status</dt>
-              <dd className={health.ok ? "text-emerald-400" : "text-red-400"}>
-                {health.ok ? "reachable" : "unreachable"}
-                {health.error ? ` — ${health.error}` : ""}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-zinc-500">Chain ID</dt>
-              <dd className="text-zinc-200">{health.chainId || "—"}</dd>
-            </div>
-            <div>
-              <dt className="text-zinc-500">Faucet</dt>
-              <dd className="text-zinc-200">
-                {health.faucetEnabled ? "enabled" : "disabled / unknown"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-zinc-500">Client</dt>
-              <dd className="truncate text-zinc-200">
-                {health.clientVersion ?? "—"}
-              </dd>
-            </div>
-            {health.explorer && (
-              <div className="sm:col-span-2">
-                <dt className="text-zinc-500">Explorer info</dt>
-                <dd className="mt-1 overflow-x-auto rounded-lg bg-zinc-950/80 p-3 font-mono text-xs text-zinc-400">
-                  {JSON.stringify(health.explorer)}
-                </dd>
-              </div>
-            )}
-          </dl>
+          <div className="overflow-hidden rounded-xl border border-morpho-line">
+            <table className="w-full text-left text-sm">
+              <tbody className="divide-y divide-morpho-line">
+                <tr className="bg-white">
+                  <th className="px-3.5 py-2.5 text-xs font-medium text-morpho-muted">
+                    Status
+                  </th>
+                  <td
+                    className={`px-3.5 py-2.5 font-medium ${
+                      health.ok ? "text-morpho-green" : "text-morpho-red"
+                    }`}
+                  >
+                    {health.ok ? "reachable" : "unreachable"}
+                    {health.error ? ` — ${health.error}` : ""}
+                  </td>
+                </tr>
+                <tr>
+                  <th className="px-3.5 py-2.5 text-xs font-medium text-morpho-muted">
+                    Chain ID
+                  </th>
+                  <td className="px-3.5 py-2.5 font-mono text-morpho-ink">
+                    {health.chainId || "—"}
+                  </td>
+                </tr>
+                <tr>
+                  <th className="px-3.5 py-2.5 text-xs font-medium text-morpho-muted">
+                    Faucet
+                  </th>
+                  <td className="px-3.5 py-2.5 text-morpho-ink">
+                    {health.faucetEnabled ? "enabled" : "disabled / unknown"}
+                  </td>
+                </tr>
+                <tr>
+                  <th className="px-3.5 py-2.5 text-xs font-medium text-morpho-muted">
+                    Client
+                  </th>
+                  <td className="truncate px-3.5 py-2.5 font-mono text-xs text-morpho-ink">
+                    {health.clientVersion ?? "—"}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         )}
-      </section>
+      </Panel>
 
-      <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6">
-        <h2 className="mb-2 text-sm font-medium text-zinc-300">
-          Smoke: first Frame tx
-        </h2>
-        <p className="mb-4 text-sm text-zinc-500">
-          Optional warm-up — faucet, sign VERIFY+SENDER self-relay, send with
-          eth_sendFrameTransaction, wait for inclusion. Use Diff below for the
-          prize demo.
-        </p>
+      <Panel>
+        <PanelTitle>Smoke: first Frame tx</PanelTitle>
+        <PanelHint>
+          Optional warm-up — faucet, sign VERIFY+SENDER, send with
+          eth_sendFrameTransaction. Use Diff below for the prize demo.
+        </PanelHint>
+
         {health?.ok === false && (
-          <div className="mb-3">
+          <div className="mt-3">
             <StatusLine kind="error">
               Gateway down — restore health before sending.
             </StatusLine>
           </div>
         )}
-        <button
-          type="button"
-          disabled={busy || health?.ok === false || healthLoading}
-          onClick={() => void runFirstTx()}
-          className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
-        >
-          {busy ? "Sending Frame…" : "Send smoke Frame"}
-        </button>
+
+        <div className="mt-5">
+          <PrimaryButton
+            type="button"
+            disabled={busy || health?.ok === false || healthLoading}
+            onClick={() => void runFirstTx()}
+            className="w-full sm:w-auto"
+          >
+            {busy ? "Sending Frame…" : "Send smoke Frame"}
+          </PrimaryButton>
+        </div>
+
         {busy && (
           <div className="mt-3">
             <StatusLine kind="loading">
@@ -200,27 +220,30 @@ export function DemoConsole() {
         )}
 
         {result && (
-          <div className="mt-4 space-y-2 text-sm">
+          <div className="mt-4 space-y-2 border-t border-morpho-line pt-4 text-sm">
             {result.ok ? (
               <>
-                <StatusLine kind="ok">Smoke Frame admitted and mined.</StatusLine>
-                <p className="break-anywhere text-zinc-400">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge tone="ok">Admitted</Badge>
+                  <StatusLine kind="ok">Smoke Frame mined.</StatusLine>
+                </div>
+                <p className="break-anywhere text-morpho-muted">
                   Sender{" "}
-                  <span className="font-mono text-zinc-200">{result.address}</span>
+                  <span className="font-mono text-morpho-ink">{result.address}</span>
                 </p>
-                <p className="break-anywhere text-zinc-400">
+                <p className="break-anywhere text-morpho-muted">
                   Tx{" "}
-                  <span className="font-mono text-zinc-200">{result.txHash}</span>
+                  <span className="font-mono text-morpho-ink">{result.txHash}</span>
                 </p>
                 {result.blockNumber != null && (
-                  <p className="text-zinc-400">
+                  <p className="text-morpho-muted">
                     Block {result.blockNumber} · frames ok {result.framesOk}
                     {result.funded ? " · faucet used" : ""}
                   </p>
                 )}
                 {result.explorerUrl && (
                   <a
-                    className="inline-block text-emerald-400 underline-offset-2 hover:underline"
+                    className="inline-flex text-sm font-medium text-morpho-blue hover:underline"
                     href={result.explorerUrl}
                     target="_blank"
                     rel="noreferrer"
@@ -234,22 +257,21 @@ export function DemoConsole() {
                 <StatusLine kind="error">
                   Smoke failed{result.code != null ? ` (${result.code})` : ""}
                 </StatusLine>
-                <p className="break-all font-mono text-xs text-red-400/80">
+                <p className="break-all font-mono text-xs text-morpho-red/80">
                   {result.message}
                 </p>
-                <button
+                <GhostButton
                   type="button"
                   disabled={busy || health?.ok === false}
                   onClick={() => void runFirstTx()}
-                  className="text-xs text-emerald-400 hover:underline disabled:opacity-40"
                 >
                   Retry smoke Frame
-                </button>
+                </GhostButton>
               </div>
             )}
           </div>
         )}
-      </section>
+      </Panel>
     </div>
   );
 }
