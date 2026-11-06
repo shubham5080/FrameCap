@@ -135,6 +135,10 @@ export default function LandingPage() {
           <h2 className="mt-3 max-w-2xl text-2xl font-semibold tracking-tight text-morpho-ink sm:text-3xl">
             Flexible validation the public pool won’t allow.
           </h2>
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-morpho-muted">
+            Today most limits live in apps and bots — they can still fail.
+            FrameCap enforces the cap onchain before money moves.
+          </p>
           <div className="mt-10 grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-morpho-line bg-white p-6 shadow-panel">
               <p className="text-xs font-semibold uppercase tracking-wide text-morpho-red">

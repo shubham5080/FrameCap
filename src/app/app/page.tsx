@@ -90,7 +90,8 @@ export default function AppPage() {
             <p className="mt-1 leading-relaxed">
               The normal public mempool blocks this kind of limit check. The
               staked alternative mempool can allow it — that’s the special part
-              FrameCap shows.
+              FrameCap shows. Today most limits live in apps and bots — they can
+              still fail. FrameCap enforces the cap onchain before money moves.
             </p>
           </div>
         </section>
