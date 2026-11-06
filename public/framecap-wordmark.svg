@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 64" fill="none" role="img" aria-label="FrameCap">
+  <rect x="0" y="8" width="48" height="48" rx="12" fill="#2470FF"/>
+  <rect x="11" y="19" width="26" height="26" rx="6.5" stroke="#FFFFFF" stroke-width="2.6"/>
+  <path d="M17.5 26.5H19.6V24.4" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M30.5 26.5H28.4V24.4" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M17.5 37.5H19.6V39.6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M30.5 37.5H28.4V39.6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="16.5" y="30" width="15" height="4.2" rx="2.1" fill="#FFFFFF"/>
+  <text
+    x="64"
+    y="42"
+    fill="#0D0D0D"
+    font-family="Arial Black, Arial, Helvetica, sans-serif"
+    font-size="34"
+    font-weight="700"
+    letter-spacing="-1.2"
+  >FrameCap</text>
+</svg>

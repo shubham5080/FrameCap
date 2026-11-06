@@ -1,5 +1,5 @@
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import type { Address, Hex } from "viem";
+import { parseEther, type Address, type Hex } from "viem";
 import { config, explorerTxUrl } from "./config";
 import { rpc, RpcError } from "./rpc";
 import {
@@ -9,6 +9,7 @@ import {
   signFrameTx,
   type FrameTx,
 } from "./hegota";
+import { findFundedKey, rememberFundedKey } from "./wallet-bank";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -71,6 +72,76 @@ export async function fundFromFaucet(to: Address): Promise<Hex> {
     throw new Error(`Funding transfer ${result.txHash} reverted`);
   }
   return result.txHash;
+}
+
+export function isFaucetEmptyError(message: string): boolean {
+  return /faucet is empty|Faucet refused/i.test(message);
+}
+
+/**
+ * Ensure an account can pay for Diff (deploy + stake).
+ * Order: wallet bank → faucet → optional FRAMECAP_FUNDER_KEY.
+ */
+export async function ensureFundedPrivateKey(minWei: bigint): Promise<{
+  privateKey: Hex;
+  fundedVia: "faucet" | "wallet-bank" | "funder-key";
+}> {
+  // 1) Reuse a previously funded key if it still has ETH
+  const recycled = await findFundedKey(minWei);
+  if (recycled) {
+    return { privateKey: recycled, fundedVia: "wallet-bank" };
+  }
+
+  // 2) Fresh key + faucet
+  const fresh = generatePrivateKey();
+  const account = privateKeyToAccount(fresh);
+
+  try {
+    await fundFromFaucet(account.address);
+    const bal = await getBalance(account.address);
+    if (bal >= minWei) {
+      rememberFundedKey(fresh);
+      return { privateKey: fresh, fundedVia: "faucet" };
+    }
+    throw new Error(
+      `Faucet funded ${account.address} but balance ${bal} < ${minWei}`,
+    );
+  } catch (e) {
+    const faucetMsg = e instanceof Error ? e.message : String(e);
+
+    // 3) Optional funder key (app secret FRAMECAP_FUNDER_KEY)
+    const funder =
+      process.env.FRAMECAP_FUNDER_KEY?.trim() ||
+      process.env.FRAMECAP_OWNER_KEY?.trim();
+    if (funder && /^0x[0-9a-fA-F]{64}$/.test(funder)) {
+      const funderKey = funder as Hex;
+      const from = privateKeyToAccount(funderKey);
+      const funderBal = await getBalance(from.address);
+      if (funderBal > minWei + parseEther("0.01")) {
+        const nonce = Number(
+          await rpc<string>("eth_getTransactionCount", [
+            from.address,
+            "pending",
+          ]),
+        );
+        const raw = await from.signTransaction({
+          chainId: config.chainId,
+          nonce,
+          to: account.address,
+          value: minWei,
+          gas: 100_000n,
+          gasPrice: 2_000_000n,
+          type: "legacy",
+        });
+        const hash = await rpc<Hex>("eth_sendRawTransaction", [raw]);
+        await waitMined(hash);
+        rememberFundedKey(fresh);
+        return { privateKey: fresh, fundedVia: "funder-key" };
+      }
+    }
+
+    throw new Error(faucetMsg);
+  }
 }
 
 export async function waitMined(

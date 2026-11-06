@@ -18,12 +18,6 @@ type Health = {
   faucetEnabled: boolean;
   explorer: Record<string, unknown> | null;
   error?: string;
-  config?: {
-    gatewayUrl: string;
-    explorerUrl: string;
-    profileId: string;
-    stakingRegistry: string;
-  };
 };
 
 type FirstTx = {
@@ -54,7 +48,7 @@ export function DemoConsole() {
       const res = await fetch("/api/health", { cache: "no-store" });
       if (!res.ok) {
         setHealth(null);
-        setHealthErr(`Health HTTP ${res.status}`);
+        setHealthErr(`Health check failed (HTTP ${res.status})`);
         return;
       }
       const data = (await res.json()) as Health;
@@ -82,7 +76,7 @@ export function DemoConsole() {
       } catch {
         setResult({
           ok: false,
-          message: `Bad JSON from /api/first-tx (HTTP ${res.status})`,
+          message: `Bad response from test send (HTTP ${res.status})`,
           code: res.status,
         });
         return;
@@ -111,13 +105,16 @@ export function DemoConsole() {
       <Panel>
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <PanelTitle>Alt mempool gateway</PanelTitle>
-            <PanelHint>Workshop sidecar health before Diff.</PanelHint>
+            <PanelTitle>Is the network online?</PanelTitle>
+            <PanelHint>
+              Green means you can run the comparison. If it’s red, wait a moment
+              and tap Recheck.
+            </PanelHint>
           </div>
           <div className="flex items-center gap-2">
             {!healthLoading && health && (
               <Badge tone={health.ok ? "ok" : "bad"}>
-                {health.ok ? "Reachable" : "Down"}
+                {health.ok ? "Online" : "Offline"}
               </Badge>
             )}
             <GhostButton type="button" onClick={() => void refreshHealth()}>
@@ -127,14 +124,14 @@ export function DemoConsole() {
         </div>
 
         {healthLoading && (
-          <StatusLine kind="loading">Checking gateway…</StatusLine>
+          <StatusLine kind="loading">Checking network…</StatusLine>
         )}
         {healthErr && !healthLoading && (
           <div className="space-y-1">
-            <StatusLine kind="error">Gateway health failed</StatusLine>
+            <StatusLine kind="error">Network check failed</StatusLine>
             <p className="font-mono text-xs text-morpho-red/80">{healthErr}</p>
             <GhostButton type="button" onClick={() => void refreshHealth()}>
-              Retry health
+              Try again
             </GhostButton>
           </div>
         )}
@@ -151,13 +148,13 @@ export function DemoConsole() {
                       health.ok ? "text-morpho-green" : "text-morpho-red"
                     }`}
                   >
-                    {health.ok ? "reachable" : "unreachable"}
+                    {health.ok ? "Online" : "Offline"}
                     {health.error ? ` — ${health.error}` : ""}
                   </td>
                 </tr>
                 <tr>
                   <th className="px-3.5 py-2.5 text-xs font-medium text-morpho-muted">
-                    Chain ID
+                    Test chain
                   </th>
                   <td className="px-3.5 py-2.5 font-mono text-morpho-ink">
                     {health.chainId || "—"}
@@ -165,18 +162,10 @@ export function DemoConsole() {
                 </tr>
                 <tr>
                   <th className="px-3.5 py-2.5 text-xs font-medium text-morpho-muted">
-                    Faucet
+                    Free test funds
                   </th>
                   <td className="px-3.5 py-2.5 text-morpho-ink">
-                    {health.faucetEnabled ? "enabled" : "disabled / unknown"}
-                  </td>
-                </tr>
-                <tr>
-                  <th className="px-3.5 py-2.5 text-xs font-medium text-morpho-muted">
-                    Client
-                  </th>
-                  <td className="truncate px-3.5 py-2.5 font-mono text-xs text-morpho-ink">
-                    {health.clientVersion ?? "—"}
+                    {health.faucetEnabled ? "Available" : "Unavailable"}
                   </td>
                 </tr>
               </tbody>
@@ -186,16 +175,19 @@ export function DemoConsole() {
       </Panel>
 
       <Panel>
-        <PanelTitle>Smoke: first Frame tx</PanelTitle>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-morpho-muted">
+          Optional
+        </p>
+        <PanelTitle>Send a quick test transaction</PanelTitle>
         <PanelHint>
-          Optional warm-up — faucet, sign VERIFY+SENDER, send with
-          eth_sendFrameTransaction. Use Diff below for the prize demo.
+          Skip this for the main demo. Use it only if you want a simple “network
+          works” check before the full comparison.
         </PanelHint>
 
         {health?.ok === false && (
           <div className="mt-3">
             <StatusLine kind="error">
-              Gateway down — restore health before sending.
+              Network is offline — fix that before sending a test.
             </StatusLine>
           </div>
         )}
@@ -207,14 +199,14 @@ export function DemoConsole() {
             onClick={() => void runFirstTx()}
             className="w-full sm:w-auto"
           >
-            {busy ? "Sending Frame…" : "Send smoke Frame"}
+            {busy ? "Sending…" : "Send test transaction"}
           </PrimaryButton>
         </div>
 
         {busy && (
           <div className="mt-3">
             <StatusLine kind="loading">
-              Faucet → sign → eth_sendFrameTransaction → mine (~1–2 min)
+              Funding (if needed) → signing → waiting for the block (~1–2 min)
             </StatusLine>
           </div>
         )}
@@ -224,23 +216,13 @@ export function DemoConsole() {
             {result.ok ? (
               <>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge tone="ok">Admitted</Badge>
-                  <StatusLine kind="ok">Smoke Frame mined.</StatusLine>
+                  <Badge tone="ok">Success</Badge>
+                  <StatusLine kind="ok">Test transaction mined.</StatusLine>
                 </div>
                 <p className="break-anywhere text-morpho-muted">
-                  Sender{" "}
+                  Wallet{" "}
                   <span className="font-mono text-morpho-ink">{result.address}</span>
                 </p>
-                <p className="break-anywhere text-morpho-muted">
-                  Tx{" "}
-                  <span className="font-mono text-morpho-ink">{result.txHash}</span>
-                </p>
-                {result.blockNumber != null && (
-                  <p className="text-morpho-muted">
-                    Block {result.blockNumber} · frames ok {result.framesOk}
-                    {result.funded ? " · faucet used" : ""}
-                  </p>
-                )}
                 {result.explorerUrl && (
                   <a
                     className="inline-flex text-sm font-medium text-morpho-blue hover:underline"
@@ -255,7 +237,7 @@ export function DemoConsole() {
             ) : (
               <div className="space-y-1">
                 <StatusLine kind="error">
-                  Smoke failed{result.code != null ? ` (${result.code})` : ""}
+                  Test failed{result.code != null ? ` (${result.code})` : ""}
                 </StatusLine>
                 <p className="break-all font-mono text-xs text-morpho-red/80">
                   {result.message}
@@ -265,7 +247,7 @@ export function DemoConsole() {
                   disabled={busy || health?.ok === false}
                   onClick={() => void runFirstTx()}
                 >
-                  Retry smoke Frame
+                  Retry test
                 </GhostButton>
               </div>
             )}

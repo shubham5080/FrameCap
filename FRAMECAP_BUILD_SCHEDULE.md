@@ -67,6 +67,9 @@
 | ✅ | 04:00 | Diff failure recovery notes | `docs: diff recovery` |
 | ✅ | 04:30 | Screenshot / evidence folder stub | `docs: evidence stub` |
 | ✅ | 07:06 | Morpho Blue–inspired light UI | `style: morpho ui` (ready — you push) |
+| ✅ | 07:10 | App logo mark + favicon | `style: app logo` |
+| ✅ | 07:13 | Wordmark with FrameCap name | `style: logo wordmark` |
+| ✅ | 07:17 | Morpho-style landing + /app | `feat: landing enter app` (ready — you push) |
 | ⬜ | 07:30+ | Rehearse + fix only as needed | keep half-hour commits |
 | ⬜ | 15:00 | **FEATURE FREEZE** | `chore: feature freeze` |
 

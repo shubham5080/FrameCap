@@ -14,7 +14,7 @@ Workshop sidecar used by the Diff spine. Pin matches `src/lib/config.ts`.
 
 ## Pre-demo health (UI)
 
-1. Open http://127.0.0.1:43127  
+1. Open http://127.0.0.1:43127 → **Enter FrameCap** (`/app`)  
 2. **Alt mempool gateway** → **Recheck**  
 3. Expect: Status **reachable**, Chain **1337**, Faucet **enabled**  
 4. If red → do **not** start Diff; fix health first  

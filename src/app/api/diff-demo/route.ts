@@ -7,18 +7,25 @@ export const maxDuration = 300;
 
 export async function POST(request: Request) {
   try {
+    let dailyLimitEth: string | number | undefined;
     let dailyLimitGwei: number | undefined;
     try {
-      const body = (await request.json()) as { dailyLimitGwei?: unknown };
+      const body = (await request.json()) as {
+        dailyLimitEth?: unknown;
+        dailyLimitGwei?: unknown;
+      };
+      if (typeof body.dailyLimitEth === "number" || typeof body.dailyLimitEth === "string") {
+        dailyLimitEth = body.dailyLimitEth;
+      }
       if (typeof body.dailyLimitGwei === "number") {
         dailyLimitGwei = body.dailyLimitGwei;
       } else if (typeof body.dailyLimitGwei === "string") {
         dailyLimitGwei = Number(body.dailyLimitGwei);
       }
     } catch {
-      // empty body is fine — demo uses default 5 gwei
+      // empty body is fine — demo uses default 0.001 ETH
     }
-    const result = await runDiffDemo({ dailyLimitGwei });
+    const result = await runDiffDemo({ dailyLimitEth, dailyLimitGwei });
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);

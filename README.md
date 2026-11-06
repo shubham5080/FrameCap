@@ -19,7 +19,8 @@ Built for ETHGlobal Mumbai 2026 · Ethereum Foundation — Best use of the Frame
 ## Run locally
 ```bash
 npm install
-npm run dev          # http://127.0.0.1:43127
+npm run dev          # http://127.0.0.1:43127  (landing)
+                     # http://127.0.0.1:43127/app  (Diff console)
 npm run smoke:first-tx   # faucet + VERIFY+SENDER Frame tx on live gateway
 ```
 
@@ -55,9 +56,9 @@ npm run smoke:diff   # requires dev server on :43127
 
 Do this **twice** on a healthy gateway. Keep the tab open — Diff can take 1–3 minutes.
 
-1. `npm run dev` → open http://127.0.0.1:43127  
+1. `npm run dev` → open http://127.0.0.1:43127 → **Enter FrameCap** (`/app`)  
 2. **Alt mempool gateway** → Recheck → status `reachable`, faucet `enabled`, chain `1337`  
-3. **Daily quota** → e.g. `5` gwei → **Use for Diff**  
+3. **Daily quota** → e.g. `0.001` ETH → **Save limit**  
 4. **Run Diff (prize demo)** → wait for “Diff complete”  
 5. Confirm UI rows:
    - Canonical — expect reject → `REJECTED [STO]` / `StorageReadNonSender`

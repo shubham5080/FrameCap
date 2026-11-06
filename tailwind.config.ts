@@ -10,9 +10,12 @@ export default {
     extend: {
       colors: {
         morpho: {
-          bg: "#F7F8FA",
+          /** Morpho-style alternate bands: soft blue ↔ pure white */
+          hero: "#EEF2FF",
+          band: "#FFFFFF",
+          bg: "#FFFFFF",
           surface: "#FFFFFF",
-          ink: "#0D0D0D",
+          ink: "#111827",
           muted: "#6B7280",
           line: "#E8EAEE",
           lineStrong: "#D5D8DE",

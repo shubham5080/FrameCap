@@ -1,3 +1,25 @@
+/** Map Diff / gateway failures to plain-language copy. */
+export function humanFailure(message: string | undefined): {
+  title: string;
+  detail: string;
+} | null {
+  const m = message ?? "";
+  if (/faucet is empty|Faucet refused/i.test(m)) {
+    return {
+      title: "Test faucet is empty",
+      detail:
+        "The workshop faucet ran out of ETH, so a new demo wallet couldn’t be funded. Wait a bit, skip the optional test send, then Try again. For mentors, use the saved explorer proof links.",
+    };
+  }
+  if (/rate limit|429/i.test(m)) {
+    return {
+      title: "Too many faucet requests",
+      detail: "Wait a few minutes, then Try again once.",
+    };
+  }
+  return null;
+}
+
 /** Map gateway / ethrex rejection text to judge-readable copy. */
 export function humanRejection(message: string | undefined): {
   rule: string;

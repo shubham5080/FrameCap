@@ -1,7 +1,7 @@
 # FrameCap — talk track (mentors / video / judges)
 
 **Repo:** https://github.com/shubham5080/FrameCap  
-**App:** http://127.0.0.1:43127  
+**App:** http://127.0.0.1:43127 → **Enter FrameCap** → `/app`  
 **Prize line:** EF — Best use of the Frame Transaction Alternative Mempool
 
 ---
@@ -27,7 +27,7 @@
 ## Click path (rehearse once)
 
 1. Alt mempool gateway shows **reachable** / faucet **enabled**  
-2. Daily quota (e.g. 5 gwei) → **Use for Diff**  
+2. Daily quota (e.g. 0.001 ETH) → **Save limit**  
 3. **Run Diff (prize demo)** (wait 1–3 min — narrate while it runs)  
 4. Scroll verdicts + Raw RPC evidence  
 5. Optional: paste wallet → **Check stake**  
