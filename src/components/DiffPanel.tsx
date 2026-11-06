@@ -126,11 +126,14 @@ export function DiffPanel({ dailyLimitEth = "0.001" }: { dailyLimitEth?: string 
     const tick = window.setInterval(() => {
       setPhase((p) => (p + 1) % PHASES.length);
     }, 4000);
+    const ac = new AbortController();
+    const kill = window.setTimeout(() => ac.abort(), 90_000);
     try {
       const res = await fetch("/api/diff-demo", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ dailyLimitEth }),
+        signal: ac.signal,
       });
       let data: DiffResult;
       try {
@@ -151,11 +154,19 @@ export function DiffPanel({ dailyLimitEth = "0.001" }: { dailyLimitEth?: string 
       }
       setResult(data);
     } catch (e) {
+      const aborted =
+        (e instanceof DOMException && e.name === "AbortError") ||
+        (e instanceof Error && e.name === "AbortError");
       setResult({
         ok: false,
-        message: e instanceof Error ? e.message : String(e),
+        message: aborted
+          ? "Live proof took too long. Refresh and try again — if the network is slow, FrameCap will show a recorded proof."
+          : e instanceof Error
+            ? e.message
+            : String(e),
       });
     } finally {
+      window.clearTimeout(kill);
       window.clearInterval(tick);
       setBusy(false);
     }
@@ -193,7 +204,8 @@ export function DiffPanel({ dailyLimitEth = "0.001" }: { dailyLimitEth?: string 
         <div className="mt-5 space-y-1 rounded-xl border border-morpho-line bg-morpho-bg px-4 py-3">
           <StatusLine kind="loading">{PHASES[phase]}</StatusLine>
           <p className="text-xs text-morpho-muted">
-            This talks to the live test network — usually 1–3 minutes. Keep the tab open.
+            Talking to the live test network. Usually finishes within ~1 minute —
+            if it stalls, FrameCap switches to a recorded proof automatically.
           </p>
         </div>
       )}

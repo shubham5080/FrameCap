@@ -3,7 +3,7 @@ import { runDiffDemo } from "@/lib/deploy";
 import { RpcError } from "@/lib/rpc";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 300;
+export const maxDuration = 120;
 
 export async function POST(request: Request) {
   try {

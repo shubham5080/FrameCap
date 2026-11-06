@@ -27,6 +27,9 @@ import {
 
 const DEPLOY_GAS = 6_000_000n;
 const LEGACY_GAS_PRICE = 2_000_000n; // 0.002 gwei
+/** Keep Diff responsive: fall back to recorded proof if live mining stalls. */
+const DIFF_LIVE_BUDGET_MS = 75_000;
+const DIFF_MINE_TIMEOUT_SEC = 40;
 
 type Artifact = { abi: Abi; bytecode: Hex };
 
@@ -79,7 +82,7 @@ async function deployContract(
     value,
     gas: DEPLOY_GAS,
   });
-  const receipt = await waitMined(hash);
+  const receipt = await waitMined(hash, DIFF_MINE_TIMEOUT_SEC);
   if (receipt.status !== "0x1" || !receipt.contractAddress) {
     throw new Error(`Deploy ${name} failed: ${hash}`);
   }
@@ -250,40 +253,72 @@ function recordedDiffDemo(dailyLimit: bigint): DiffDemoResult {
   };
 }
 
-/** Full FrameCap spine: deploy → set quota → canonical ❌ → alt unstaked ❌ → stake → alt ✅ → over-quota ❌ */
+function parseDailyLimit(opts?: {
+  dailyLimitEth?: string | number;
+  dailyLimitGwei?: number;
+}): bigint {
+  if (opts?.dailyLimitEth != null && String(opts.dailyLimitEth).trim() !== "") {
+    const eth = Number(opts.dailyLimitEth);
+    if (!Number.isFinite(eth) || eth <= 0) {
+      throw new Error("dailyLimitEth must be a positive number");
+    }
+    return parseEther(String(opts.dailyLimitEth));
+  }
+  if (opts?.dailyLimitGwei && opts.dailyLimitGwei > 0) {
+    return BigInt(Math.floor(opts.dailyLimitGwei)) * 1_000_000_000n;
+  }
+  return parseEther("0.001");
+}
+
+function shouldUseRecordedFallback(message: string): boolean {
+  return (
+    isFaucetEmptyError(message) ||
+    message === "DIFF_TIMEOUT" ||
+    /not mined within/i.test(message) ||
+    /timed?\s*out|timeout/i.test(message) ||
+    /fetch failed|ECONNRESET|ETIMEDOUT|ENETUNREACH|503|502/i.test(message)
+  );
+}
+
+/** Full FrameCap spine with a hard budget — slow/empty gateway falls back to recorded proof. */
 export async function runDiffDemo(opts?: {
   /** Preferred: daily limit in ETH (e.g. 0.001). */
   dailyLimitEth?: string | number;
   /** Legacy: daily limit in gwei. */
   dailyLimitGwei?: number;
 }): Promise<DiffDemoResult> {
-  const stakeWei = parseEther(config.stakeEth);
-
-  let dailyLimit: bigint;
-  if (opts?.dailyLimitEth != null && String(opts.dailyLimitEth).trim() !== "") {
-    const eth = Number(opts.dailyLimitEth);
-    if (!Number.isFinite(eth) || eth <= 0) {
-      throw new Error("dailyLimitEth must be a positive number");
-    }
-    dailyLimit = parseEther(String(opts.dailyLimitEth));
-  } else if (opts?.dailyLimitGwei && opts.dailyLimitGwei > 0) {
-    dailyLimit = BigInt(Math.floor(opts.dailyLimitGwei)) * 1_000_000_000n;
-  } else {
-    dailyLimit = parseEther("0.001");
-  }
-
-  // Need deploy gas + wallet endowment (0.05) + stake (~0.012)
-  const minWei = parseEther("0.08");
-  let privateKey: Hex;
+  const dailyLimit = parseDailyLimit(opts);
   try {
-    ({ privateKey } = await ensureFundedPrivateKey(minWei));
+    return await Promise.race([
+      runDiffDemoLive(dailyLimit),
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("DIFF_TIMEOUT")), DIFF_LIVE_BUDGET_MS);
+      }),
+    ]);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    if (isFaucetEmptyError(msg)) {
-      return recordedDiffDemo(dailyLimit);
+    if (shouldUseRecordedFallback(msg)) {
+      const recorded = recordedDiffDemo(dailyLimit);
+      if (msg === "DIFF_TIMEOUT" || /not mined within/i.test(msg)) {
+        return {
+          ...recorded,
+          notice:
+            "Live testnet was too slow — showing a recorded successful Diff proof instead.",
+        };
+      }
+      return recorded;
     }
     throw e;
   }
+}
+
+/** Live path: deploy → set quota → canonical ❌ → alt unstaked ❌ → stake → alt ✅ → over-quota ❌ */
+async function runDiffDemoLive(dailyLimit: bigint): Promise<DiffDemoResult> {
+  const stakeWei = parseEther(config.stakeEth);
+
+  // Need deploy gas + wallet endowment (0.05) + stake (~0.012)
+  const minWei = parseEther("0.08");
+  const { privateKey } = await ensureFundedPrivateKey(minWei);
   const owner = privateKeyToAccount(privateKey);
 
   const ledger = await deployContract(privateKey, "QuotaLedger");
@@ -304,7 +339,7 @@ export async function runDiffDemo(opts?: {
     data: setData,
     gas: 500_000n,
   });
-  const setReceipt = await waitMined(setHash);
+  const setReceipt = await waitMined(setHash, DIFF_MINE_TIMEOUT_SEC);
   if (setReceipt.status !== "0x1") {
     throw new Error(`setDailyLimit reverted: ${setHash}`);
   }
@@ -356,7 +391,7 @@ export async function runDiffDemo(opts?: {
   const altBeforeStake = await attemptSend(() => sendFrameTx(probe1));
   // Live gateway may admit unstaked STO; if it does, wait so the nonce clears before stake.
   if (altBeforeStake.accepted && altBeforeStake.txHash) {
-    await waitMined(altBeforeStake.txHash);
+    await waitMined(altBeforeStake.txHash, DIFF_MINE_TIMEOUT_SEC);
   }
 
   // Stake (clean VERIFY — empty data)
@@ -373,7 +408,7 @@ export async function runDiffDemo(opts?: {
     privateKey,
   );
   const stakeTxHash = await sendFrameTx(stakeTx);
-  await waitMined(stakeTxHash);
+  await waitMined(stakeTxHash, DIFF_MINE_TIMEOUT_SEC);
   const stakeAmountWei = (await getStake(wallet)).toString();
 
   // After stake: admit + persist spend via ledger.recordSpend in a SENDER frame.
@@ -381,7 +416,7 @@ export async function runDiffDemo(opts?: {
   let altAfterStake: DiffDemoResult["altAfterStake"];
   try {
     const txHash = await sendFrameTx(probe2);
-    await waitMined(txHash);
+    await waitMined(txHash, DIFF_MINE_TIMEOUT_SEC);
     altAfterStake = {
       accepted: true,
       txHash,
