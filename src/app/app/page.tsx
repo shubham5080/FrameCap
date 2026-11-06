@@ -6,6 +6,7 @@ import { config } from "@/lib/config";
 import type { QuotaTokenId } from "@/lib/tokens";
 import { DemoConsole } from "@/components/DemoConsole";
 import { DiffPanel } from "@/components/DiffPanel";
+import { AllowlistPanel } from "@/components/AllowlistPanel";
 import { SetQuotaForm } from "@/components/SetQuotaForm";
 import { StakeStatus } from "@/components/StakeStatus";
 import { LogoLockup } from "@/components/Logo";
@@ -55,9 +56,9 @@ export default function AppPage() {
             Stop a Frame wallet from spending too much in one day.
           </h1>
           <p className="mt-4 text-base leading-relaxed text-morpho-muted">
-            You set a daily money limit. Before a spend goes through, FrameCap
-            checks that limit onchain. If the spend would go over the limit, it
-            is blocked.
+            You set a daily money limit and who the wallet may pay. Before a
+            spend goes through, FrameCap checks both onchain. Over the limit or
+            not on the allowlist? Blocked.
           </p>
 
           <div className="mt-8 grid gap-3 sm:grid-cols-3">
@@ -67,12 +68,12 @@ export default function AppPage() {
                 d: "Example: only 0.001 ETH, or 10 USDC / USDT, can leave today.",
               },
               {
-                t: "A spend is attempted",
-                d: "The wallet checks the limit before money moves.",
+                t: "You allowlist destinations",
+                d: "Only approved addresses can receive funds from this wallet.",
               },
               {
-                t: "Over limit = blocked",
-                d: "Under limit can go through on the alt mempool path.",
+                t: "Bad spend = blocked",
+                d: "Over limit or wrong destination — stopped before money moves.",
               },
             ].map((item) => (
               <div
@@ -131,6 +132,7 @@ export default function AppPage() {
             onTokenChange={setToken}
             onLimitChange={setLimitAmount}
           />
+          <AllowlistPanel />
           <DiffPanel dailyLimitAmount={limitAmount} token={token} />
         </div>
 

@@ -42,6 +42,13 @@ export function humanRejection(message: string | undefined): {
       detail: "Remaining budget is below the requested spend in VERIFY data.",
     };
   }
+  if (/DestNotAllowed/i.test(m)) {
+    return {
+      rule: "ALLOW",
+      title: "Destination not allowlisted",
+      detail: "This wallet may only send to addresses on its allowlist.",
+    };
+  }
   if (/BannedOpcode/i.test(m)) {
     return {
       rule: "OP-011",

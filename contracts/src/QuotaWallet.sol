@@ -6,6 +6,7 @@ import {HegotaSupport, Devnet, Scope, SigParam} from "@forshtat/hegota-support/c
 interface IQuotaLedger {
     function remaining(address entity) external view returns (uint128);
     function recordSpend(address entity, uint128 amount) external;
+    function isDestinationAllowed(address entity, address dest) external view returns (bool);
 }
 
 /// @title QuotaWallet — Frame VERIFY enforces a daily spend quota via foreign storage
@@ -18,6 +19,7 @@ contract QuotaWallet is HegotaSupport(Devnet.ERC8421_WORKSHOP) {
 
     error BadSigner();
     error OverQuota(uint128 remaining, uint128 requested);
+    error DestNotAllowed(address dest);
 
     constructor(address owner_, address ledger_) payable {
         owner = owner_;
@@ -30,14 +32,22 @@ contract QuotaWallet is HegotaSupport(Devnet.ERC8421_WORKSHOP) {
         }
 
         if (msg.data.length > 0) {
-            // Decode requested spend from VERIFY data (uint128 big-endian in first 16 bytes,
-            // or treat any non-empty data as a 1-wei probe when shorter).
+            // VERIFY data layouts:
+            // - 36+ bytes: dest (20) || amount (16) — quota + allowlist check
+            // - 16+ bytes: amount only (legacy Diff probes)
+            // - shorter: 1-wei probe
             uint128 requested = 1;
-            if (msg.data.length >= 16) {
+            address dest = address(0);
+            if (msg.data.length >= 36) {
+                dest = address(bytes20(msg.data[0:20]));
+                requested = uint128(bytes16(msg.data[20:36]));
+            } else if (msg.data.length >= 16) {
                 requested = uint128(bytes16(msg.data[0:16]));
             }
-            // Foreign storage read — FrameCap's differentiator vs the canonical mempool.
-            // Spend is recorded in a later SENDER frame (validation state does not persist).
+            // Foreign storage reads — FrameCap's differentiator vs the canonical mempool.
+            if (dest != address(0) && !ledger.isDestinationAllowed(address(this), dest)) {
+                revert DestNotAllowed(dest);
+            }
             uint128 left = ledger.remaining(address(this));
             if (requested > left) revert OverQuota(left, requested);
         }

@@ -32,6 +32,13 @@ const LEGACY_GAS_PRICE = 2_000_000n; // 0.002 gwei
 const DIFF_LIVE_BUDGET_MS = 75_000;
 const DIFF_MINE_TIMEOUT_SEC = 40;
 
+/** VERIFY data: dest (20 bytes) || amount (16 bytes uint128). */
+function packVerifyQuota(dest: Address, amountWei: bigint): Hex {
+  const destPart = dest.toLowerCase().replace(/^0x/, "").padStart(40, "0");
+  const amtPart = amountWei.toString(16).padStart(32, "0");
+  return `0x${destPart}${amtPart}` as Hex;
+}
+
 type Artifact = { abi: Abi; bytecode: Hex };
 
 function loadArtifact(name: "QuotaLedger" | "QuotaWallet"): Artifact {
@@ -351,10 +358,25 @@ async function runDiffDemoLive(dailyLimit: bigint): Promise<DiffDemoResult> {
     throw new Error(`setDailyLimit reverted: ${setHash}`);
   }
 
-  // Probe: ask for 1 gwei spend via VERIFY data (16-byte uint128).
+  // Allowlist the workshop recipient so VERIFY dest checks pass under quota.
+  const allowData = encodeFunctionData({
+    abi: loadArtifact("QuotaLedger").abi,
+    functionName: "setDestination",
+    args: [wallet, config.recipient, true],
+  });
+  const allowHash = await sendLegacy(privateKey, {
+    to: ledger,
+    data: allowData,
+    gas: 200_000n,
+  });
+  const allowReceipt = await waitMined(allowHash, DIFF_MINE_TIMEOUT_SEC);
+  if (allowReceipt.status !== "0x1") {
+    throw new Error(`setDestination reverted: ${allowHash}`);
+  }
+
+  // Probe: 1 gwei spend to allowlisted recipient (dest || amount).
   const requested = 1_000_000_000n;
-  const quotaProbe =
-    `0x${requested.toString(16).padStart(32, "0")}` as Hex;
+  const quotaProbe = packVerifyQuota(config.recipient, requested);
 
   const buildProbe = async (spendWei: bigint) => {
     const nonce = await getNonce(wallet);
@@ -366,7 +388,7 @@ async function runDiffDemoLive(dailyLimit: bigint): Promise<DiffDemoResult> {
         value: config.transferWei,
         nonce,
         maxFeePerGas: config.maxFeePerGasWei,
-        verifyData: quotaProbe,
+        verifyData: packVerifyQuota(config.recipient, spendWei),
         ledger,
         spendWei,
       }),
@@ -436,9 +458,9 @@ async function runDiffDemoLive(dailyLimit: bigint): Promise<DiffDemoResult> {
     };
   }
 
-  // Over-quota: request more than remaining (limit 5 gwei, already spent 1)
+  // Over-quota: request more than remaining (already spent 1 gwei)
   const overRequest = dailyLimit; // always above remaining after the 1 gwei spend
-  const overData = `0x${overRequest.toString(16).padStart(32, "0")}` as Hex;
+  const overData = packVerifyQuota(config.recipient, overRequest);
   const overTx = await signFrameTx(
     buildWalletTx({
       wallet,

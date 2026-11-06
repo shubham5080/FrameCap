@@ -35,4 +35,16 @@ contract QuotaLedgerTest is Test {
         ledger.recordSpend(entity, 1); // _roll clears spend, then records 1
         assertEq(ledger.remaining(entity), 99);
     }
+
+    function test_destinationAllowlist() public {
+        address okDest = address(0xA11);
+        address badDest = address(0xBAD);
+        // Empty allowlist → all destinations open
+        assertTrue(ledger.isDestinationAllowed(entity, badDest));
+        ledger.setDestination(entity, okDest, true);
+        assertTrue(ledger.isDestinationAllowed(entity, okDest));
+        assertFalse(ledger.isDestinationAllowed(entity, badDest));
+        ledger.setDestination(entity, okDest, false);
+        assertTrue(ledger.isDestinationAllowed(entity, badDest));
+    }
 }

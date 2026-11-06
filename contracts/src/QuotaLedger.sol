@@ -16,12 +16,17 @@ contract QuotaLedger {
     }
 
     mapping(address entity => Quota) public quotas;
+    /// @dev Optional destination allowlist. If count is 0, all destinations are open.
+    mapping(address entity => mapping(address dest => bool)) public allowedDest;
+    mapping(address entity => uint256) public allowlistCount;
 
     event QuotaSet(address indexed entity, uint128 dailyLimitWei);
     event SpendRecorded(address indexed entity, uint128 amount, uint128 spentWei, uint64 dayId);
+    event DestinationSet(address indexed entity, address indexed dest, bool allowed);
 
     error LimitZero();
     error OverQuota(uint128 remaining, uint128 requested);
+    error ZeroDestination();
 
     function setDailyLimit(address entity, uint128 dailyLimitWei) external {
         if (dailyLimitWei == 0) revert LimitZero();
@@ -31,6 +36,22 @@ contract QuotaLedger {
         // Fresh limit: clear spend so the demo starts with a full budget.
         q.spentWei = 0;
         emit QuotaSet(entity, dailyLimitWei);
+    }
+
+    function setDestination(address entity, address dest, bool allowed) external {
+        if (dest == address(0)) revert ZeroDestination();
+        bool prev = allowedDest[entity][dest];
+        if (prev == allowed) return;
+        allowedDest[entity][dest] = allowed;
+        if (allowed) allowlistCount[entity] += 1;
+        else allowlistCount[entity] -= 1;
+        emit DestinationSet(entity, dest, allowed);
+    }
+
+    /// @dev Pure storage reads — safe for VERIFY. Empty allowlist = all dests open.
+    function isDestinationAllowed(address entity, address dest) external view returns (bool) {
+        if (allowlistCount[entity] == 0) return true;
+        return allowedDest[entity][dest];
     }
 
     /// @dev Pure storage math — no environment opcodes. Must return the value
