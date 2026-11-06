@@ -278,14 +278,26 @@ function parseDailyLimit(opts?: {
   return parseEther("0.001");
 }
 
+function parseOptionalEth(value?: string | number): bigint {
+  if (value == null || String(value).trim() === "") return 0n;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0) return 0n;
+  if (n === 0) return 0n;
+  return parseEther(String(value));
+}
+
 /** Full FrameCap spine with a hard budget — any live failure falls back to recorded proof. */
 export async function runDiffDemo(opts?: {
   /** Preferred: daily limit in ETH (e.g. 0.001). */
   dailyLimitEth?: string | number;
+  weeklyLimitEth?: string | number;
+  monthlyLimitEth?: string | number;
   /** Legacy: daily limit in gwei. */
   dailyLimitGwei?: number;
 }): Promise<DiffDemoResult> {
   const dailyLimit = parseDailyLimit(opts);
+  const weeklyLimit = parseOptionalEth(opts?.weeklyLimitEth);
+  const monthlyLimit = parseOptionalEth(opts?.monthlyLimitEth);
   // Public hosts (Vercel) default to recorded proof so anonymous callers cannot burn faucet ETH.
   const allowLive =
     process.env.FRAMECAP_ALLOW_LIVE === "1" ||
@@ -299,7 +311,7 @@ export async function runDiffDemo(opts?: {
   }
   try {
     return await Promise.race([
-      runDiffDemoLive(dailyLimit),
+      runDiffDemoLive(dailyLimit, weeklyLimit, monthlyLimit),
       new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error("DIFF_TIMEOUT")), DIFF_LIVE_BUDGET_MS);
       }),
@@ -324,7 +336,11 @@ export async function runDiffDemo(opts?: {
 }
 
 /** Live path: deploy → set quota → canonical ❌ → alt unstaked ❌ → stake → alt ✅ → over-quota ❌ */
-async function runDiffDemoLive(dailyLimit: bigint): Promise<DiffDemoResult> {
+async function runDiffDemoLive(
+  dailyLimit: bigint,
+  weeklyLimit = 0n,
+  monthlyLimit = 0n,
+): Promise<DiffDemoResult> {
   const stakeWei = parseEther(config.stakeEth);
 
   // Workshop often sits in manual bundling — force auto before we send txs.
@@ -356,6 +372,39 @@ async function runDiffDemoLive(dailyLimit: bigint): Promise<DiffDemoResult> {
   const setReceipt = await waitMined(setHash, DIFF_MINE_TIMEOUT_SEC);
   if (setReceipt.status !== "0x1") {
     throw new Error(`setDailyLimit reverted: ${setHash}`);
+  }
+
+  if (weeklyLimit > 0n) {
+    const weeklyData = encodeFunctionData({
+      abi: loadArtifact("QuotaLedger").abi,
+      functionName: "setWeeklyLimit",
+      args: [wallet, weeklyLimit],
+    });
+    const weeklyHash = await sendLegacy(privateKey, {
+      to: ledger,
+      data: weeklyData,
+      gas: 200_000n,
+    });
+    const weeklyReceipt = await waitMined(weeklyHash, DIFF_MINE_TIMEOUT_SEC);
+    if (weeklyReceipt.status !== "0x1") {
+      throw new Error(`setWeeklyLimit reverted: ${weeklyHash}`);
+    }
+  }
+  if (monthlyLimit > 0n) {
+    const monthlyData = encodeFunctionData({
+      abi: loadArtifact("QuotaLedger").abi,
+      functionName: "setMonthlyLimit",
+      args: [wallet, monthlyLimit],
+    });
+    const monthlyHash = await sendLegacy(privateKey, {
+      to: ledger,
+      data: monthlyData,
+      gas: 200_000n,
+    });
+    const monthlyReceipt = await waitMined(monthlyHash, DIFF_MINE_TIMEOUT_SEC);
+    if (monthlyReceipt.status !== "0x1") {
+      throw new Error(`setMonthlyLimit reverted: ${monthlyHash}`);
+    }
   }
 
   // Allowlist the workshop recipient so VERIFY dest checks pass under quota.

@@ -13,7 +13,9 @@ import { LogoLockup } from "@/components/Logo";
 
 export default function AppPage() {
   const [token, setToken] = useState<QuotaTokenId>("ETH");
-  const [limitAmount, setLimitAmount] = useState("0.001");
+  const [dailyAmount, setDailyAmount] = useState("0.001");
+  const [weeklyAmount, setWeeklyAmount] = useState("");
+  const [monthlyAmount, setMonthlyAmount] = useState("");
   const [showExtras, setShowExtras] = useState(false);
 
   return (
@@ -128,12 +130,21 @@ export default function AppPage() {
         <div className="mt-4 space-y-4" id="demo">
           <SetQuotaForm
             token={token}
-            limitAmount={limitAmount}
+            dailyAmount={dailyAmount}
+            weeklyAmount={weeklyAmount}
+            monthlyAmount={monthlyAmount}
             onTokenChange={setToken}
-            onLimitChange={setLimitAmount}
+            onDailyChange={setDailyAmount}
+            onWeeklyChange={setWeeklyAmount}
+            onMonthlyChange={setMonthlyAmount}
           />
           <AllowlistPanel />
-          <DiffPanel dailyLimitAmount={limitAmount} token={token} />
+          <DiffPanel
+            dailyLimitAmount={dailyAmount}
+            weeklyLimitAmount={weeklyAmount}
+            monthlyLimitAmount={monthlyAmount}
+            token={token}
+          />
         </div>
 
         <div className="mt-6">

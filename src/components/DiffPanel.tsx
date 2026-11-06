@@ -119,9 +119,13 @@ function VerdictRow({
 
 export function DiffPanel({
   dailyLimitAmount = "0.001",
+  weeklyLimitAmount = "",
+  monthlyLimitAmount = "",
   token = "ETH",
 }: {
   dailyLimitAmount?: string;
+  weeklyLimitAmount?: string;
+  monthlyLimitAmount?: string;
   token?: QuotaTokenId;
 }) {
   const [busy, setBusy] = useState(false);
@@ -130,6 +134,12 @@ export function DiffPanel({
   const [showTech, setShowTech] = useState(false);
   const meta = tokenMeta(token);
   const workshopEth = ethLimitForWorkshopProof(token, dailyLimitAmount);
+  const workshopWeekly = weeklyLimitAmount
+    ? ethLimitForWorkshopProof(token, weeklyLimitAmount)
+    : "";
+  const workshopMonthly = monthlyLimitAmount
+    ? ethLimitForWorkshopProof(token, monthlyLimitAmount)
+    : "";
 
   async function run() {
     setBusy(true);
@@ -145,7 +155,12 @@ export function DiffPanel({
       const res = await fetch("/api/diff-demo", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ dailyLimitEth: workshopEth, token }),
+        body: JSON.stringify({
+          dailyLimitEth: workshopEth,
+          weeklyLimitEth: workshopWeekly || undefined,
+          monthlyLimitEth: workshopMonthly || undefined,
+          token,
+        }),
         signal: ac.signal,
       });
       let data: DiffResult;
@@ -196,14 +211,20 @@ export function DiffPanel({
           <PanelHint>
             One button. You’ll get four clear outcomes: public path blocked, alt
             path blocked until stake, alt path allowed after stake, over-limit
-            blocked. Limit:{" "}
+            blocked. Limits:{" "}
             <span className="font-medium text-morpho-ink">
               {dailyLimitAmount} {meta.label}/day
+              {weeklyLimitAmount
+                ? ` · ${weeklyLimitAmount} ${meta.label}/week`
+                : ""}
+              {monthlyLimitAmount
+                ? ` · ${monthlyLimitAmount} ${meta.label}/month`
+                : ""}
             </span>
             {token !== "ETH" && (
               <>
                 {" "}
-                (workshop proof runs as {workshopEth} ETH)
+                (workshop proof runs as {workshopEth} ETH daily)
               </>
             )}
             .

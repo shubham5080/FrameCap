@@ -30,21 +30,41 @@ contract QuotaLedgerTest is Test {
         ledger.recordSpend(entity, 100);
         assertEq(ledger.remaining(entity), 0);
         vm.warp(block.timestamp + 1 days + 1);
-        // remaining() does not touch TIMESTAMP; roll happens on the next write.
         assertEq(ledger.remaining(entity), 0);
-        ledger.recordSpend(entity, 1); // _roll clears spend, then records 1
+        ledger.recordSpend(entity, 1);
         assertEq(ledger.remaining(entity), 99);
     }
 
     function test_destinationAllowlist() public {
         address okDest = address(0xA11);
         address badDest = address(0xBAD);
-        // Empty allowlist → all destinations open
         assertTrue(ledger.isDestinationAllowed(entity, badDest));
         ledger.setDestination(entity, okDest, true);
         assertTrue(ledger.isDestinationAllowed(entity, okDest));
         assertFalse(ledger.isDestinationAllowed(entity, badDest));
         ledger.setDestination(entity, okDest, false);
         assertTrue(ledger.isDestinationAllowed(entity, badDest));
+    }
+
+    function test_weeklyAndMonthlyTightenRemaining() public {
+        ledger.setDailyLimit(entity, 100);
+        ledger.setWeeklyLimit(entity, 50);
+        ledger.setMonthlyLimit(entity, 80);
+        // Tightest is weekly 50
+        assertEq(ledger.remaining(entity), 50);
+        ledger.recordSpend(entity, 40);
+        assertEq(ledger.remaining(entity), 10);
+        vm.expectRevert();
+        ledger.recordSpend(entity, 11);
+    }
+
+    function test_weeklyRoll() public {
+        ledger.setDailyLimit(entity, 1000);
+        ledger.setWeeklyLimit(entity, 100);
+        ledger.recordSpend(entity, 100);
+        assertEq(ledger.remaining(entity), 0);
+        vm.warp(block.timestamp + 7 days + 1);
+        ledger.recordSpend(entity, 1); // rolls week + day
+        assertEq(ledger.remaining(entity), 99);
     }
 }

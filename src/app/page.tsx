@@ -12,11 +12,11 @@ export default function LandingPage() {
           <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 pb-16 pt-14 sm:px-6 sm:pb-20 sm:pt-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div className="fc-enter max-w-xl">
               <h1 className="text-4xl font-bold tracking-tight text-morpho-ink sm:text-5xl md:text-[3.25rem] md:leading-[1.08]">
-                Daily spend limits and allowlists for Frame wallets.
+                Spend limits and allowlists for Frame wallets.
               </h1>
               <p className="mt-4 max-w-md text-base leading-relaxed text-morpho-muted sm:text-lg">
-                Set how much a wallet can spend today — and who it may pay.
-                FrameCap checks both before money moves. Over the limit or wrong
+                Set daily, weekly, or monthly caps — and who the wallet may pay.
+                FrameCap checks before money moves. Over the limit or wrong
                 destination? Blocked.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
