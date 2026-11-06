@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import { humanFailure, humanRejection } from "@/lib/explain";
+import {
+  ethLimitForWorkshopProof,
+  type QuotaTokenId,
+  tokenMeta,
+} from "@/lib/tokens";
 import { StatusLine } from "@/components/StatusLine";
 import {
   Badge,
@@ -112,11 +117,19 @@ function VerdictRow({
   );
 }
 
-export function DiffPanel({ dailyLimitEth = "0.001" }: { dailyLimitEth?: string }) {
+export function DiffPanel({
+  dailyLimitAmount = "0.001",
+  token = "ETH",
+}: {
+  dailyLimitAmount?: string;
+  token?: QuotaTokenId;
+}) {
   const [busy, setBusy] = useState(false);
   const [phase, setPhase] = useState(0);
   const [result, setResult] = useState<DiffResult | null>(null);
   const [showTech, setShowTech] = useState(false);
+  const meta = tokenMeta(token);
+  const workshopEth = ethLimitForWorkshopProof(token, dailyLimitAmount);
 
   async function run() {
     setBusy(true);
@@ -132,7 +145,7 @@ export function DiffPanel({ dailyLimitEth = "0.001" }: { dailyLimitEth?: string 
       const res = await fetch("/api/diff-demo", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ dailyLimitEth }),
+        body: JSON.stringify({ dailyLimitEth: workshopEth, token }),
         signal: ac.signal,
       });
       let data: DiffResult;
@@ -183,10 +196,16 @@ export function DiffPanel({ dailyLimitEth = "0.001" }: { dailyLimitEth?: string 
           <PanelHint>
             One button. You’ll get four clear outcomes: public path blocked, alt
             path blocked until stake, alt path allowed after stake, over-limit
-            blocked.             Limit:{" "}
+            blocked. Limit:{" "}
             <span className="font-medium text-morpho-ink">
-              {dailyLimitEth} ETH/day
+              {dailyLimitAmount} {meta.label}/day
             </span>
+            {token !== "ETH" && (
+              <>
+                {" "}
+                (workshop proof runs as {workshopEth} ETH)
+              </>
+            )}
             .
           </PanelHint>
         </div>
@@ -281,9 +300,10 @@ export function DiffPanel({ dailyLimitEth = "0.001" }: { dailyLimitEth?: string 
                   </p>
                 </div>
                 <div className="rounded-xl border border-morpho-line bg-morpho-bg px-3.5 py-3">
-                  <p className="text-xs text-morpho-muted">Daily limit onchain</p>
+                  <p className="text-xs text-morpho-muted">Daily limit</p>
                   <p className="mt-0.5 font-mono text-xs text-morpho-ink">
-                    {dailyLimitEth} ETH/day
+                    {dailyLimitAmount} {meta.label}/day
+                    {token !== "ETH" ? ` · proof ${workshopEth} ETH` : ""}
                   </p>
                 </div>
               </div>

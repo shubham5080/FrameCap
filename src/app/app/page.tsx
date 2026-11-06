@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { config } from "@/lib/config";
+import type { QuotaTokenId } from "@/lib/tokens";
 import { DemoConsole } from "@/components/DemoConsole";
 import { DiffPanel } from "@/components/DiffPanel";
 import { SetQuotaForm } from "@/components/SetQuotaForm";
@@ -10,7 +11,8 @@ import { StakeStatus } from "@/components/StakeStatus";
 import { LogoLockup } from "@/components/Logo";
 
 export default function AppPage() {
-  const [limitEth, setLimitEth] = useState("0.001");
+  const [token, setToken] = useState<QuotaTokenId>("ETH");
+  const [limitAmount, setLimitAmount] = useState("0.001");
   const [showExtras, setShowExtras] = useState(false);
 
   return (
@@ -62,7 +64,7 @@ export default function AppPage() {
             {[
               {
                 t: "You set a limit",
-                d: "Example: only 0.001 ETH can leave the wallet today.",
+                d: "Example: only 0.001 ETH, or 10 USDC / USDT, can leave today.",
               },
               {
                 t: "A spend is attempted",
@@ -113,7 +115,7 @@ export default function AppPage() {
           <ol className="mt-5 space-y-2 text-sm text-morpho-ink">
             <li className="flex gap-3">
               <span className="font-mono text-xs text-morpho-blue">1</span>
-              Save a small daily limit (use 0.001 ETH).
+              Pick ETH, USDC, or USDT and save a small daily limit.
             </li>
             <li className="flex gap-3">
               <span className="font-mono text-xs text-morpho-blue">2</span>
@@ -123,8 +125,13 @@ export default function AppPage() {
         </section>
 
         <div className="mt-4 space-y-4" id="demo">
-          <SetQuotaForm limitEth={limitEth} onChange={setLimitEth} />
-          <DiffPanel dailyLimitEth={limitEth} />
+          <SetQuotaForm
+            token={token}
+            limitAmount={limitAmount}
+            onTokenChange={setToken}
+            onLimitChange={setLimitAmount}
+          />
+          <DiffPanel dailyLimitAmount={limitAmount} token={token} />
         </div>
 
         <div className="mt-6">
