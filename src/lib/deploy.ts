@@ -279,6 +279,17 @@ export async function runDiffDemo(opts?: {
   dailyLimitGwei?: number;
 }): Promise<DiffDemoResult> {
   const dailyLimit = parseDailyLimit(opts);
+  // Public hosts (Vercel) default to recorded proof so anonymous callers cannot burn faucet ETH.
+  const allowLive =
+    process.env.FRAMECAP_ALLOW_LIVE === "1" ||
+    process.env.NODE_ENV !== "production";
+  if (!allowLive) {
+    return {
+      ...recordedDiffDemo(dailyLimit),
+      notice:
+        "Hosted demo shows a recorded live Diff proof. Set FRAMECAP_ALLOW_LIVE=1 to hit the workshop network.",
+    };
+  }
   try {
     return await Promise.race([
       runDiffDemoLive(dailyLimit),

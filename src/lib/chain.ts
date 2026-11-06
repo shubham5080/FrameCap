@@ -171,7 +171,7 @@ export async function ensureFundedPrivateKey(minWei: bigint): Promise<{
 
 export async function waitMined(
   hash: Hex,
-  timeoutSec = config.txTimeoutSec,
+  timeoutSec: number = config.txTimeoutSec,
 ): Promise<Record<string, unknown> & { status?: string; frameReceipts?: { status: string }[] }> {
   const deadline = Date.now() + timeoutSec * 1000;
   let ticks = 0;
