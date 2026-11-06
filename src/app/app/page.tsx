@@ -7,6 +7,7 @@ import type { QuotaTokenId } from "@/lib/tokens";
 import { DemoConsole } from "@/components/DemoConsole";
 import { DiffPanel } from "@/components/DiffPanel";
 import { AllowlistPanel } from "@/components/AllowlistPanel";
+import { GuardianPanel } from "@/components/GuardianPanel";
 import { SetQuotaForm } from "@/components/SetQuotaForm";
 import { StakeStatus } from "@/components/StakeStatus";
 import { LogoLockup } from "@/components/Logo";
@@ -58,24 +59,28 @@ export default function AppPage() {
             Stop a Frame wallet from spending too much in one day.
           </h1>
           <p className="mt-4 text-base leading-relaxed text-morpho-muted">
-            You set a daily money limit and who the wallet may pay. Before a
-            spend goes through, FrameCap checks both onchain. Over the limit or
-            not on the allowlist? Blocked.
+            Set spend caps, optional allowlists, and an optional guardian who
+            alone can change the rules. Over the limit, wrong destination, or
+            non-guardian trying to raise the cap? Blocked.
           </p>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
-                t: "You set a limit",
-                d: "Example: only 0.001 ETH, or 10 USDC / USDT, can leave today.",
+                t: "Spend caps",
+                d: "Daily required; weekly/monthly optional.",
               },
               {
                 t: "Optional allowlist",
-                d: "Lock who can get paid — or skip it and only use the daily cap.",
+                d: "Lock who can get paid — or skip it.",
+              },
+              {
+                t: "Optional guardian",
+                d: "Parent/admin edits rules; spender can’t self-raise.",
               },
               {
                 t: "Bad spend = blocked",
-                d: "Over limit or wrong destination — stopped before money moves.",
+                d: "Stopped in VERIFY before money moves.",
               },
             ].map((item) => (
               <div
@@ -139,6 +144,7 @@ export default function AppPage() {
             onMonthlyChange={setMonthlyAmount}
           />
           <AllowlistPanel />
+          <GuardianPanel />
           <DiffPanel
             dailyLimitAmount={dailyAmount}
             weeklyLimitAmount={weeklyAmount}

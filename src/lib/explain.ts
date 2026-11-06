@@ -49,6 +49,14 @@ export function humanRejection(message: string | undefined): {
       detail: "This wallet may only send to addresses on its allowlist.",
     };
   }
+  if (/NotGuardian/i.test(m)) {
+    return {
+      rule: "GUARD",
+      title: "Only the guardian can edit policy",
+      detail:
+        "Limits and allowlist changes must come from the guardian address, not the spender.",
+    };
+  }
   if (/BannedOpcode/i.test(m)) {
     return {
       rule: "OP-011",

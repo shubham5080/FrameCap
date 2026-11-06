@@ -22,6 +22,8 @@ contract QuotaLedger {
     }
 
     mapping(address entity => Quota) public quotas;
+    /// @dev Guardian may edit limits + allowlist. Spender wallet cannot raise its own cap.
+    mapping(address entity => address guardian) public guardians;
     /// @dev Optional destination allowlist. If count is 0, all destinations are open.
     mapping(address entity => mapping(address dest => bool)) public allowedDest;
     mapping(address entity => uint256) public allowlistCount;
@@ -31,12 +33,25 @@ contract QuotaLedger {
     event MonthlyQuotaSet(address indexed entity, uint128 monthlyLimitWei);
     event SpendRecorded(address indexed entity, uint128 amount, uint128 spentWei, uint64 dayId);
     event DestinationSet(address indexed entity, address indexed dest, bool allowed);
+    event GuardianSet(address indexed entity, address indexed guardian);
 
     error LimitZero();
     error OverQuota(uint128 remaining, uint128 requested);
     error ZeroDestination();
+    error ZeroGuardian();
+    error NotGuardian();
+
+    /// @notice Set or rotate the guardian. First call (no guardian yet) is open; later only the current guardian.
+    function setGuardian(address entity, address newGuardian) external {
+        if (newGuardian == address(0)) revert ZeroGuardian();
+        address current = guardians[entity];
+        if (current != address(0) && msg.sender != current) revert NotGuardian();
+        guardians[entity] = newGuardian;
+        emit GuardianSet(entity, newGuardian);
+    }
 
     function setDailyLimit(address entity, uint128 dailyLimitWei) external {
+        _requireGuardian(entity);
         if (dailyLimitWei == 0) revert LimitZero();
         Quota storage q = quotas[entity];
         _roll(q);
@@ -47,6 +62,7 @@ contract QuotaLedger {
 
     /// @notice 0 disables the weekly cap.
     function setWeeklyLimit(address entity, uint128 weeklyLimitWei) external {
+        _requireGuardian(entity);
         Quota storage q = quotas[entity];
         _roll(q);
         q.weeklyLimitWei = weeklyLimitWei;
@@ -56,6 +72,7 @@ contract QuotaLedger {
 
     /// @notice 0 disables the monthly cap.
     function setMonthlyLimit(address entity, uint128 monthlyLimitWei) external {
+        _requireGuardian(entity);
         Quota storage q = quotas[entity];
         _roll(q);
         q.monthlyLimitWei = monthlyLimitWei;
@@ -64,6 +81,7 @@ contract QuotaLedger {
     }
 
     function setDestination(address entity, address dest, bool allowed) external {
+        _requireGuardian(entity);
         if (dest == address(0)) revert ZeroDestination();
         bool prev = allowedDest[entity][dest];
         if (prev == allowed) return;
@@ -71,6 +89,11 @@ contract QuotaLedger {
         if (allowed) allowlistCount[entity] += 1;
         else allowlistCount[entity] -= 1;
         emit DestinationSet(entity, dest, allowed);
+    }
+
+    function _requireGuardian(address entity) internal view {
+        address g = guardians[entity];
+        if (g == address(0) || msg.sender != g) revert NotGuardian();
     }
 
     /// @dev Pure storage reads — safe for VERIFY. Empty allowlist = all dests open.

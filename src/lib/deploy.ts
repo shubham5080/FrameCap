@@ -359,6 +359,22 @@ async function runDiffDemoLive(
     [owner.address, ledger],
     parseEther("0.05"),
   );
+  // Guardian controls limits/allowlist — demo owner is guardian (spender can't self-raise).
+  const guardianData = encodeFunctionData({
+    abi: loadArtifact("QuotaLedger").abi,
+    functionName: "setGuardian",
+    args: [wallet, owner.address],
+  });
+  const guardianHash = await sendLegacy(privateKey, {
+    to: ledger,
+    data: guardianData,
+    gas: 150_000n,
+  });
+  const guardianReceipt = await waitMined(guardianHash, DIFF_MINE_TIMEOUT_SEC);
+  if (guardianReceipt.status !== "0x1") {
+    throw new Error(`setGuardian reverted: ${guardianHash}`);
+  }
+
   const setData = encodeFunctionData({
     abi: loadArtifact("QuotaLedger").abi,
     functionName: "setDailyLimit",

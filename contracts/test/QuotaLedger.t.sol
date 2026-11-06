@@ -8,8 +8,11 @@ contract QuotaLedgerTest is Test {
     QuotaLedger ledger;
     address entity = address(0xBEEF);
 
+    address guardian = address(this);
+
     function setUp() public {
         ledger = new QuotaLedger();
+        ledger.setGuardian(entity, guardian);
     }
 
     function test_setAndRemaining() public {
@@ -66,5 +69,25 @@ contract QuotaLedgerTest is Test {
         vm.warp(block.timestamp + 7 days + 1);
         ledger.recordSpend(entity, 1); // rolls week + day
         assertEq(ledger.remaining(entity), 99);
+    }
+
+    function test_onlyGuardianCanEditLimits() public {
+        address stranger = address(0xBAD1);
+        vm.prank(stranger);
+        vm.expectRevert();
+        ledger.setDailyLimit(entity, 1 ether);
+
+        ledger.setDailyLimit(entity, 1 ether);
+        assertEq(ledger.guardians(entity), guardian);
+
+        address newGuardian = address(0x1111);
+        ledger.setGuardian(entity, newGuardian);
+        vm.prank(guardian);
+        vm.expectRevert();
+        ledger.setDailyLimit(entity, 2 ether);
+
+        vm.prank(newGuardian);
+        ledger.setDailyLimit(entity, 2 ether);
+        assertEq(ledger.remaining(entity), 2 ether);
     }
 }
