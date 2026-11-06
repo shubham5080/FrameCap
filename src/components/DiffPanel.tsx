@@ -321,9 +321,15 @@ export function DiffPanel({
                   </p>
                 </div>
                 <div className="rounded-xl border border-morpho-line bg-morpho-bg px-3.5 py-3">
-                  <p className="text-xs text-morpho-muted">Daily limit</p>
+                  <p className="text-xs text-morpho-muted">Limits</p>
                   <p className="mt-0.5 font-mono text-xs text-morpho-ink">
                     {dailyLimitAmount} {meta.label}/day
+                    {weeklyLimitAmount
+                      ? ` · ${weeklyLimitAmount}/wk`
+                      : ""}
+                    {monthlyLimitAmount
+                      ? ` · ${monthlyLimitAmount}/mo`
+                      : ""}
                     {token !== "ETH" ? ` · proof ${workshopEth} ETH` : ""}
                   </p>
                 </div>
