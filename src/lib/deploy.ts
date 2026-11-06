@@ -12,6 +12,7 @@ import { parseEther } from "viem";
 import { config, explorerTxUrl } from "./config";
 import { rpc } from "./rpc";
 import {
+  ensureAutoBundling,
   ensureFundedPrivateKey,
   getNonce,
   isFaucetEmptyError,
@@ -307,6 +308,9 @@ export async function runDiffDemo(opts?: {
 /** Live path: deploy → set quota → canonical ❌ → alt unstaked ❌ → stake → alt ✅ → over-quota ❌ */
 async function runDiffDemoLive(dailyLimit: bigint): Promise<DiffDemoResult> {
   const stakeWei = parseEther(config.stakeEth);
+
+  // Workshop often sits in manual bundling — force auto before we send txs.
+  await ensureAutoBundling();
 
   // Need deploy gas + wallet endowment (0.05) + stake (~0.012)
   const minWei = parseEther("0.08");

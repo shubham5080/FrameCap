@@ -59,6 +59,31 @@ export async function getNonce(address: Address): Promise<bigint> {
   );
 }
 
+/**
+ * Workshop gateway often boots in manual bundling — txs sit until bundled.
+ * Flip to auto and nudge a bundle; ignore errors if the method is locked.
+ */
+export async function ensureAutoBundling(): Promise<void> {
+  try {
+    await rpc("debug_bundler_setBundlingMode", ["auto"]);
+  } catch {
+    // some gateway builds refuse this; sendBundleNow may still help
+  }
+  try {
+    await rpc("debug_bundler_sendBundleNow", []);
+  } catch {
+    // ignore
+  }
+}
+
+async function kickBundle(): Promise<void> {
+  try {
+    await rpc("debug_bundler_sendBundleNow", []);
+  } catch {
+    // ignore
+  }
+}
+
 export async function fundFromFaucet(to: Address): Promise<Hex> {
   let result: { txHash: Hex };
   try {
@@ -149,6 +174,7 @@ export async function waitMined(
   timeoutSec = config.txTimeoutSec,
 ): Promise<Record<string, unknown> & { status?: string; frameReceipts?: { status: string }[] }> {
   const deadline = Date.now() + timeoutSec * 1000;
+  let ticks = 0;
   while (Date.now() < deadline) {
     const r = await rpc<
       | (Record<string, unknown> & {
@@ -158,6 +184,9 @@ export async function waitMined(
       | null
     >("eth_getTransactionReceipt", [hash]);
     if (r) return r;
+    // Manual-bundling workshops need a periodic kick or txs never land.
+    if (ticks % 2 === 0) await kickBundle();
+    ticks += 1;
     await sleep(2000);
   }
   throw new Error(`Transaction ${hash} not mined within ${timeoutSec}s`);
