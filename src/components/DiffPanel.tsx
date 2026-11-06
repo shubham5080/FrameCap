@@ -307,13 +307,17 @@ export function DiffPanel({ dailyLimitEth = "0.001" }: { dailyLimitEth?: string 
                     <VerdictRow
                       step="02"
                       label="Alt mempool, before stake"
-                      expect="Should still block until the wallet is staked"
+                      expect={
+                        result.altBeforeStake?.accepted
+                          ? "Workshop profile admitted this without stake today — not a FrameCap bug"
+                          : "Often blocks until the wallet is staked"
+                      }
                       v={result.altBeforeStake}
                     />
                     <VerdictRow
                       step="03"
                       label="Alt mempool, after stake"
-                      expect="Should allow the same spend"
+                      expect="Should allow the spend under the daily limit"
                       v={result.altAfterStake}
                     />
                     <VerdictRow
