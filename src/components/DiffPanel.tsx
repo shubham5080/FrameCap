@@ -263,7 +263,7 @@ export function DiffPanel({ dailyLimitEth = "0.001" }: { dailyLimitEth?: string 
                 </Badge>
                 <StatusLine kind="ok">
                   {result.mode === "recorded"
-                    ? "Faucet was empty — showing a prior successful live proof."
+                    ? "Recorded proof ready — read the four results below."
                     : "Comparison finished — read the four results below."}
                 </StatusLine>
               </div>
